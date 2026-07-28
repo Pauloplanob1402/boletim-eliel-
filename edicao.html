@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BOLETIM 07 — Edição de hoje</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F3EEDF;
+    --paper-2:#EAE2C9;
+    --paper-3:#E4DABC;
+    --ink:#201A0D;
+    --ink-soft:#4A4023;
+    --muted:#8a7c54;
+    --brass:#8a6a26;
+    --brass-line: rgba(138,106,38,.28);
+    --signal:#B23A2E;
+    --night:#0B1220;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper-3);
+    color:var(--ink);
+    font-family:'Public Sans', sans-serif;
+    font-size:17px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    padding:28px 12px 60px;
+  }
+  h1,h2,h3,h4{font-family:'Fraunces', serif; margin:0; letter-spacing:-0.01em;}
+  .mono{font-family:'IBM Plex Mono', monospace; letter-spacing:.04em;}
+  .sheet{
+    max-width:600px;margin:0 auto;
+    background:var(--paper);
+    border-radius:6px;
+    box-shadow:0 30px 70px -30px rgba(20,15,5,.45);
+    overflow:hidden;
+  }
+
+  /* ── Masthead ─────────────────────────────────── */
+  .masthead{
+    padding:26px 30px 18px;
+    border-bottom:3px solid var(--ink);
+  }
+  .masthead-top{
+    display:flex;justify-content:space-between;align-items:baseline;
+    margin-bottom:4px;
+  }
+  .brand{font-family:'Fraunces',serif;font-size:26px;font-weight:700;letter-spacing:-0.02em;}
+  .meta{font-size:11.5px;color:var(--muted);}
+  .edition-row{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-top:10px;font-size:12px;color:var(--ink-soft);
+  }
+  .profile-chip{
+    display:inline-flex;align-items:center;gap:6px;
+    border:1px solid var(--brass-line);border-radius:100px;
+    padding:4px 12px;font-size:11.5px;color:var(--brass);
+    font-family:'IBM Plex Mono',monospace;
+  }
+
+  /* ── Saudação ─────────────────────────────────── */
+  .greeting{padding:22px 30px 6px;}
+  .greeting h2{font-size:22px;font-weight:600;}
+  .greeting p{margin:8px 0 0;color:var(--ink-soft);font-size:15px;}
+
+  /* ── Bloco do vídeo de hoje (assinatura visual) ── */
+  .tonight{
+    margin:20px 24px 6px;
+    background:var(--night);
+    border-radius:12px;
+    padding:18px 20px;
+    color:#E7E3D6;
+    position:relative;
+    overflow:hidden;
+  }
+  .tonight::after{
+    content:'';position:absolute;top:-40%;right:-15%;
+    width:180px;height:180px;border-radius:50%;
+    background:radial-gradient(circle, rgba(200,155,60,.22), transparent 70%);
+  }
+  .tonight-label{
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;
+    color:#C89B3C;text-transform:uppercase;letter-spacing:.08em;
+    display:flex;align-items:center;gap:8px;margin-bottom:8px;
+  }
+  .tonight-label .dot{width:6px;height:6px;border-radius:50%;background:var(--signal);}
+  .tonight h3{font-size:17.5px;font-weight:600;color:#F3EEDF;line-height:1.35;position:relative;}
+  .tonight p{margin:8px 0 0;font-size:13.5px;color:#a9b0c2;position:relative;}
+  .tonight .countdown{
+    margin-top:12px;display:inline-block;font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;color:#C89B3C;border:1px solid rgba(200,155,60,.35);
+    border-radius:100px;padding:4px 12px;position:relative;
+  }
+
+  /* ── Notas ────────────────────────────────────── */
+  .notes{padding:8px 30px 6px;}
+  .note{padding:24px 0;border-top:1px solid var(--brass-line);}
+  .note:first-child{border-top:none;}
+  .tag{
+    display:inline-block;font-family:'IBM Plex Mono',monospace;
+    font-size:11px;color:var(--signal);border:1px solid var(--signal);
+    padding:2px 9px;border-radius:100px;margin-bottom:12px;
+  }
+  .note h4{font-size:20px;font-weight:600;line-height:1.3;margin-bottom:10px;}
+  .note p{margin:0 0 10px;font-size:15.5px;color:#2c2412;}
+  .note .highlight{background:#dcc373;padding:1px 4px;border-radius:2px;}
+  .note .hook{
+    margin:12px 0 0;font-size:13px;color:var(--muted);
+    font-style:italic;
+  }
+
+  /* ── Rodapé ───────────────────────────────────── */
+  footer{
+    padding:24px 30px 30px;border-top:3px solid var(--ink);
+    text-align:center;
+  }
+  footer .brand-small{font-family:'Fraunces',serif;font-size:14px;color:var(--brass);margin-bottom:8px;}
+  footer p{margin:0;color:var(--muted);font-size:12px;max-width:380px;margin:0 auto;line-height:1.6;}
+  footer a{color:var(--ink-soft);text-decoration:underline;}
+
+  @media (max-width:480px){
+    body{padding:0;}
+    .sheet{border-radius:0;box-shadow:none;}
+  }
+</style>
+</head>
+<body>
+
+  <div class="sheet">
+    <div class="masthead">
+      <div class="masthead-top">
+        <div class="brand">BOLETIM 07</div>
+        <div class="meta mono">Nº 0847</div>
+      </div>
+      <div class="edition-row">
+        <span>Terça-feira, 28 de julho · 07:00 BRT</span>
+        <span class="profile-chip">💰 GUARDIÃO DO BOLSO</span>
+      </div>
+    </div>
+
+    <div class="greeting">
+      <h2>Bom dia.</h2>
+      <p>3 notas pra você chegar informado antes de todo mundo — e mais preparado pro vídeo de hoje à noite.</p>
+    </div>
+
+    <div class="tonight">
+      <div class="tonight-label"><span class="dot"></span>HOJE NO CANAL</div>
+      <h3>Juros, dívida e o próximo passo do Banco Central — a análise completa, com os bastidores que não cabem aqui.</h3>
+      <p>Vídeo novo às 20h. O boletim de hoje é só o começo da história.</p>
+      <div class="countdown">⏰ estreia em 13h</div>
+    </div>
+
+    <div class="notes">
+      <div class="note">
+        <span class="tag">ECONOMIA</span>
+        <h4>O que a decisão de ontem faz com o seu dinheiro</h4>
+        <p>O Banco Central sinalizou mudança na taxa básica de juros. Na prática: quem tem dinheiro guardado em renda fixa deve sentir o efeito já no próximo mês.</p>
+        <p><span class="highlight">Se você tem CDB ou Tesouro Direto, vale revisar o vencimento antes de outubro.</span></p>
+        <p class="hook">— o porquê dessa decisão e o que ela esconde, só no vídeo de hoje à noite</p>
+      </div>
+
+      <div class="note">
+        <span class="tag">CÂMBIO</span>
+        <h4>Dólar reage antes da poeira baixar</h4>
+        <p>O mercado já precificou parte do anúncio de ontem à noite, mas o efeito completo só deve aparecer no fechamento de hoje.</p>
+        <p><span class="highlight">Quem tem viagem ou compra internacional marcada pode querer travar o câmbio ainda essa semana.</span></p>
+        <p class="hook">— o que os bancos estão apostando pros próximos 30 dias, no vídeo de hoje</p>
+      </div>
+
+      <div class="note">
+        <span class="tag">CONGRESSO</span>
+        <h4>A pauta de amanhã que ninguém está comentando</h4>
+        <p>Entra em votação um projeto que altera a forma de cobrança de uma taxa federal — de novo, com pouca cobertura da imprensa.</p>
+        <p><span class="highlight">O texto ainda pode mudar até amanhã; o boletim de quarta traz o resultado.</span></p>
+        <p class="hook">— quem defende e quem ataca esse projeto, no vídeo de hoje à noite</p>
+      </div>
+    </div>
+
+    <footer>
+      <div class="brand-small">BOLETIM 07</div>
+      <p>Você recebe este boletim porque é assinante do perfil Guardião do Bolso. <a href="#">Ajustar perfil</a> · <a href="#">Cancelar assinatura</a></p>
+    </footer>
+  </div>
+
+</body>
+</html>
