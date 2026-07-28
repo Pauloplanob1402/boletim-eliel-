@@ -78,9 +78,33 @@
     .loss{grid-template-columns:1fr;}
     .brand-flip{flex-direction:column;}
   }
+
+  /* ── Navegação do site (compartilhada entre páginas) ── */
+  .s07-nav{position:sticky;top:0;z-index:999;background:#0B1220;border-bottom:1px solid rgba(200,155,60,.25);}
+  .s07-nav-inner{max-width:720px;margin:0 auto;padding:11px 20px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;font-family:'IBM Plex Mono',monospace;}
+  .s07-nav-brand{color:#C89B3C;font-size:12.5px;letter-spacing:.05em;font-weight:600;text-decoration:none;}
+  .s07-nav-links{display:flex;gap:14px;align-items:center;flex-wrap:wrap;}
+  .s07-nav-links a{color:#8891A3;text-decoration:none;font-size:12px;transition:color .15s;white-space:nowrap;}
+  .s07-nav-links a:hover{color:#E7E3D6;}
+  .s07-nav-links a.s07-cta{background:#C89B3C;color:#0B1220;padding:6px 14px;border-radius:100px;font-weight:700;}
+  .s07-nav-links a.s07-cta:hover{background:#dcae4a;color:#0B1220;}
+  @media (max-width:600px){.s07-nav-inner{justify-content:center;text-align:center;}}
 </style>
 </head>
 <body>
+  <div class="s07-nav">
+    <div class="s07-nav-inner">
+      <a href="index.html" class="s07-nav-brand">BOLETIM 07</a>
+      <div class="s07-nav-links">
+        <a href="index.html">Monte seu perfil</a>
+        <a href="edicao.html">Edição real</a>
+        <a href="pitch.html">Pitch</a>
+        <a href="vendas.html">Vendas</a>
+        <a href="decisao.html" class="s07-cta">Por que decidir agora →</a>
+      </div>
+    </div>
+  </div>
+
 
   <div class="memo-bar mono"><span>MEMORANDO INTERNO · BOLETIM 07 · PARA ELIEL</span></div>
 
