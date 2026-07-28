@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BOLETIM 07 — Personalização por assinante</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0B1220; --ink-2:#121B2E; --ink-3:#182238;
+    --paper:#F3EEDF; --brass:#C89B3C; --brass-soft:#8a6a26;
+    --signal:#B23A2E; --text:#E7E3D6; --muted:#8891A3;
+    --line: rgba(200,155,60,.18);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--ink);color:var(--text);font-family:'Public Sans',sans-serif;font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3,h4{font-family:'Fraunces',serif;margin:0;letter-spacing:-0.01em;}
+  .mono{font-family:'IBM Plex Mono',monospace;letter-spacing:.04em;}
+  .wrap{max-width:600px;margin:0 auto;padding:48px 20px 70px;}
+
+  .eyebrow{font-size:12.5px;color:var(--brass);text-transform:uppercase;display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);padding:5px 14px;border-radius:100px;}
+  .head{text-align:center;margin-bottom:34px;}
+  .head h2{font-size:clamp(24px,4vw,32px);font-weight:600;margin:16px 0 10px;}
+  .head p{color:var(--muted);font-size:15px;max-width:420px;margin:0 auto;}
+
+  /* input */
+  .name-box{background:var(--ink-2);border:1px solid var(--line);border-radius:14px;padding:22px 22px;margin-bottom:30px;}
+  .name-box label{display:block;font-size:12px;color:var(--muted);margin-bottom:10px;font-family:'IBM Plex Mono',monospace;}
+  .name-box input{
+    width:100%;background:var(--ink-3);border:1.5px solid var(--line);color:var(--text);
+    font-family:'Public Sans',sans-serif;font-size:17px;padding:13px 16px;border-radius:10px;
+    outline:none;transition:border-color .15s;
+  }
+  .name-box input:focus{border-color:var(--brass);}
+
+  /* inbox mockup */
+  .inbox{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 24px 60px -25px rgba(0,0,0,.5);margin-bottom:14px;}
+  .inbox-bar{background:#f2f2f2;padding:10px 16px;font-size:12px;color:#888;border-bottom:1px solid #e6e6e6;font-family:'IBM Plex Mono',monospace;}
+  .mail-row{display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid #eee;align-items:flex-start;}
+  .mail-row.faded{opacity:.4;}
+  .mail-row .avatar{width:34px;height:34px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;font-weight:600;}
+  .mail-row .avatar.b07{background:var(--brass-soft);}
+  .mail-row .avatar.other{background:#c9c9c9;}
+  .mail-row .body{flex:1;min-width:0;}
+  .mail-row .top{display:flex;justify-content:space-between;gap:8px;}
+  .mail-row .sender{font-weight:700;font-size:14px;color:#1a1a1a;}
+  .mail-row .time{font-size:11.5px;color:#999;flex-shrink:0;}
+  .mail-row .subject{font-size:14px;color:#1a1a1a;font-weight:600;margin-top:2px;}
+  .mail-row .snippet{font-size:13px;color:#777;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .mail-row.highlight{background:#fffaf0;}
+  .mail-row.highlight .subject{color:var(--brass-soft);}
+
+  .caption{text-align:center;font-size:12.5px;color:var(--muted);margin-bottom:44px;}
+
+  /* email aberto */
+  .paper{
+    background:var(--paper);color:#241d0f;border-radius:14px;padding:32px 28px;
+    box-shadow:0 24px 60px -25px rgba(0,0,0,.5);position:relative;
+  }
+  .paper .masthead{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #241d0f;padding-bottom:12px;margin-bottom:18px;}
+  .paper .masthead b{font-family:'Fraunces',serif;font-size:19px;}
+  .paper .masthead span{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6b5f3f;}
+  .paper .greet{font-size:22px;font-weight:600;font-family:'Fraunces',serif;margin-bottom:6px;}
+  .paper .sub{color:#6b5f3f;font-size:14px;margin-bottom:20px;}
+  .tag{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--signal);border:1px solid var(--signal);padding:2px 9px;border-radius:100px;margin-bottom:12px;}
+  .paper h4{font-family:'Fraunces',serif;font-size:19px;margin:0 0 10px;}
+  .paper p{margin:0 0 12px;font-size:15px;line-height:1.6;}
+  .paper .highlight{background:#f0d98c;padding:1px 4px;}
+  .paper .cta-line{
+    margin-top:6px;background:var(--ink);color:var(--paper);border-radius:10px;padding:14px 18px;font-size:14.5px;font-weight:600;
+  }
+  .paper .cta-line b{color:var(--brass);}
+
+  footer{text-align:center;padding-top:20px;}
+  footer p{color:var(--muted);font-size:12.5px;max-width:400px;margin:0 auto;}
+
+  /* ── Navegação do site (compartilhada entre páginas) ── */
+  .s07-nav{position:sticky;top:0;z-index:999;background:#0B1220;border-bottom:1px solid rgba(200,155,60,.25);}
+  .s07-nav-inner{max-width:720px;margin:0 auto;padding:11px 20px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;font-family:'IBM Plex Mono',monospace;}
+  .s07-nav-brand{color:#C89B3C;font-size:12.5px;letter-spacing:.05em;font-weight:600;text-decoration:none;}
+  .s07-nav-links{display:flex;gap:14px;align-items:center;flex-wrap:wrap;}
+  .s07-nav-links a{color:#8891A3;text-decoration:none;font-size:12px;transition:color .15s;white-space:nowrap;}
+  .s07-nav-links a:hover{color:#E7E3D6;}
+  .s07-nav-links a.s07-cta{background:#C89B3C;color:#0B1220;padding:6px 14px;border-radius:100px;font-weight:700;}
+  .s07-nav-links a.s07-cta:hover{background:#dcae4a;color:#0B1220;}
+  @media (max-width:600px){.s07-nav-inner{justify-content:center;text-align:center;}}
+</style>
+</head>
+<body>
+  <div class="s07-nav">
+    <div class="s07-nav-inner">
+      <a href="index.html" class="s07-nav-brand">BOLETIM 07</a>
+      <div class="s07-nav-links">
+        <a href="index.html">Monte seu perfil</a>
+        <a href="personalizado.html">Personalização</a>
+        <a href="edicao.html">Edição real</a>
+        <a href="pitch.html">Pitch</a>
+        <a href="vendas.html">Vendas</a>
+        <a href="decisao.html" class="s07-cta">Eliel, clica aqui →</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="head">
+      <div class="eyebrow mono">PERSONALIZAÇÃO POR ASSINANTE</div>
+      <h2>Não é só o perfil. É o nome dele.</h2>
+      <p>Digite um nome e veja o boletim se ajustar na hora — é isso que cada assinante recebe, todo dia, com o nome dele.</p>
+    </div>
+
+    <div class="name-box">
+      <label class="mono">SEU NOME (OU TESTE COM OUTRO)</label>
+      <input id="name-input" type="text" value="Paulo" maxlength="20">
+    </div>
+
+    <div class="inbox">
+      <div class="inbox-bar">CAIXA DE ENTRADA · 07:00</div>
+      <div class="mail-row faded">
+        <div class="avatar other">B</div>
+        <div class="body">
+          <div class="top"><span class="sender">Banco</span><span class="time">06:41</span></div>
+          <div class="subject" style="font-weight:400;">Sua fatura fecha em 3 dias</div>
+        </div>
+      </div>
+      <div class="mail-row highlight">
+        <div class="avatar b07">07</div>
+        <div class="body">
+          <div class="top"><span class="sender">Boletim 07</span><span class="time">07:00</span></div>
+          <div class="subject" id="mail-subject">Paulo, clica aqui pra não perder dinheiro</div>
+          <div class="snippet">O Banco Central sinalizou mudança na taxa — veja o que isso muda pro seu bolso...</div>
+        </div>
+      </div>
+      <div class="mail-row faded">
+        <div class="avatar other">P</div>
+        <div class="body">
+          <div class="top"><span class="sender">Promoção</span><span class="time">05:12</span></div>
+          <div class="subject" style="font-weight:400;">50% off em produtos selecionados</div>
+        </div>
+      </div>
+    </div>
+    <div class="caption">↑ é assim que o boletim aparece na caixa de entrada — o nome muda o assunto, não só o conteúdo</div>
+
+    <div class="paper">
+      <div class="masthead">
+        <b>BOLETIM 07</b>
+        <span>TERÇA-FEIRA · 07:00 BRT</span>
+      </div>
+      <div class="greet" id="mail-greet">Bom dia, Paulo.</div>
+      <div class="sub">Seu perfil: Guardião do Bolso</div>
+
+      <span class="tag">ECONOMIA</span>
+      <h4>O que a decisão de ontem faz com o seu dinheiro</h4>
+      <p>O Banco Central sinalizou mudança na taxa básica de juros. Na prática: quem tem dinheiro guardado em renda fixa deve sentir o efeito já no próximo mês.</p>
+      <p><span class="highlight">Se você tem CDB ou Tesouro Direto, vale revisar o vencimento antes de outubro.</span></p>
+
+      <div class="cta-line"><span id="mail-cta">Paulo</span>, a análise completa — e <b>o que isso pode custar se você não agir</b> — é só no vídeo de hoje à noite.</div>
+    </div>
+  </div>
+
+  <footer>
+    <p>Protótipo para avaliação interna — ainda não está no ar.</p>
+  </footer>
+
+<script>
+  const input = document.getElementById('name-input');
+  function render(){
+    let name = input.value.trim();
+    if(!name) name = 'Assinante';
+    document.getElementById('mail-subject').textContent = name + ', clica aqui pra não perder dinheiro';
+    document.getElementById('mail-greet').textContent = 'Bom dia, ' + name + '.';
+    document.getElementById('mail-cta').textContent = name;
+  }
+  input.addEventListener('input', render);
+  render();
+</script>
+</body>
+</html>

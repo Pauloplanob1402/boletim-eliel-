@@ -4,6 +4,7 @@ Protótipo estático (sem build, sem dependências) pra avaliação do piloto do
 
 ## Páginas
 - `index.html` — home: demo interativa, o visitante monta o próprio perfil e gera o boletim dele na hora
+- `personalizado.html` — demo: digite um nome e veja o boletim se personalizar na hora (assunto, saudação, CTA)
 - `edicao.html` — exemplo de uma edição real do boletim, como o assinante recebe
 - `pitch.html` — página de apresentação do piloto (pitch)
 - `perfil.html` — cópia da home, mantida caso queira linkar separadamente
