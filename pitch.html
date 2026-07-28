@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BOLETIM 07 — Protótipo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0B1220;
+    --ink-2:#121B2E;
+    --ink-3:#182238;
+    --paper:#F3EEDF;
+    --paper-2:#EAE2C9;
+    --brass:#C89B3C;
+    --brass-soft:#8a6a26;
+    --signal:#B23A2E;
+    --text:#E7E3D6;
+    --muted:#8891A3;
+    --line: rgba(200,155,60,.18);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--ink);
+    color:var(--text);
+    font-family:'Public Sans', sans-serif;
+    font-size:18px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{
+    font-family:'Fraunces', serif;
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  .mono{
+    font-family:'IBM Plex Mono', monospace;
+    letter-spacing:.04em;
+  }
+  a{color:inherit;}
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px;}
+
+  /* ── Ticker ───────────────────────────────────── */
+  .ticker{
+    background:var(--ink-2);
+    border-bottom:1px solid var(--line);
+    padding:10px 0;
+    overflow:hidden;
+    white-space:nowrap;
+  }
+  .ticker-inner{
+    display:inline-block;
+    font-size:13px;
+    color:var(--brass);
+    animation:scroll-left 28s linear infinite;
+  }
+  .ticker span{margin-right:48px;color:var(--muted);}
+  .ticker b{color:var(--brass);font-weight:500;}
+  .live-dot{
+    display:inline-block;width:7px;height:7px;border-radius:50%;
+    background:var(--signal);margin-right:6px;
+    animation:pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  @keyframes scroll-left{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+  /* ── Hero ─────────────────────────────────────── */
+  .hero{padding:72px 0 56px;text-align:center;}
+  .eyebrow{
+    font-size:13px;color:var(--brass);
+    text-transform:uppercase;
+    display:inline-flex;align-items:center;gap:10px;
+    border:1px solid var(--line);
+    padding:6px 14px;border-radius:100px;
+    margin-bottom:28px;
+  }
+  .eyebrow .num{color:var(--muted);}
+  h1.headline{
+    font-size:clamp(34px, 5.4vw, 58px);
+    font-weight:600;
+    line-height:1.08;
+    color:var(--text);
+  }
+  h1.headline em{
+    font-style:normal;
+    color:var(--brass);
+  }
+  .sub{
+    max-width:560px;margin:22px auto 0;
+    font-size:19px;color:var(--muted);
+  }
+  .stats-row{
+    display:flex;justify-content:center;gap:14px;
+    margin:40px 0 8px;flex-wrap:wrap;
+  }
+  .stat-pill{
+    background:var(--ink-2);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:14px 20px;
+    min-width:150px;
+  }
+  .stat-pill .n{font-family:'Fraunces',serif;font-size:26px;color:var(--brass);font-weight:600;}
+  .stat-pill .l{font-size:12.5px;color:var(--muted);margin-top:2px;}
+  .cta{
+    display:inline-block;margin-top:36px;
+    background:var(--brass);color:var(--ink);
+    font-weight:700;font-size:15.5px;
+    padding:14px 30px;border-radius:10px;
+    text-decoration:none;
+    transition:transform .15s ease, background .15s ease;
+  }
+  .cta:hover{background:#dcae4a;transform:translateY(-1px);}
+
+  /* ── Diferenciais ─────────────────────────────── */
+  section{padding:64px 0;}
+  .section-head{text-align:center;margin-bottom:44px;}
+  .section-head .eyebrow{margin-bottom:14px;}
+  .section-head h2{font-size:clamp(26px,3.4vw,36px);font-weight:600;}
+  .diffs{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;}
+  .diff-card{background:var(--ink-2);padding:28px 24px;}
+  .diff-card .k{font-family:'IBM Plex Mono',monospace;color:var(--brass);font-size:13px;}
+  .diff-card h3{font-size:19px;margin:10px 0 8px;font-weight:600;}
+  .diff-card p{color:var(--muted);font-size:15.5px;margin:0;line-height:1.55;}
+
+  /* ── Quiz ─────────────────────────────────────── */
+  .quiz-shell{
+    background:var(--ink-2);border:1px solid var(--line);
+    border-radius:18px;padding:40px;position:relative;overflow:hidden;
+  }
+  .quiz-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;}
+  .quiz-top .file-no{font-size:12.5px;color:var(--muted);}
+  .steps{display:flex;gap:6px;}
+  .step-dot{width:22px;height:4px;border-radius:2px;background:var(--line);}
+  .step-dot.done{background:var(--brass);}
+  .q-block{display:none;}
+  .q-block.active{display:block;animation:fade-up .35s ease both;}
+  @keyframes fade-up{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  .q-text{font-size:21px;font-weight:600;font-family:'Fraunces',serif;margin-bottom:20px;}
+  .opts{display:grid;gap:10px;}
+  .opt-btn{
+    text-align:left;
+    background:var(--ink-3);border:1.5px solid var(--line);
+    color:var(--text);border-radius:11px;
+    padding:15px 18px;font-size:16px;font-family:'Public Sans',sans-serif;
+    cursor:pointer;transition:border-color .15s ease, background .15s ease;
+  }
+  .opt-btn:hover{border-color:var(--brass);background:#1c2740;}
+
+  .result{display:none;text-align:center;padding:12px 0 4px;}
+  .result.active{display:block;animation:fade-up .4s ease both;}
+  .stamp{
+    display:inline-block;
+    border:3px solid var(--signal);color:var(--signal);
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:600;font-size:13px;letter-spacing:.12em;
+    text-transform:uppercase;
+    padding:6px 16px;border-radius:6px;
+    transform:rotate(-6deg);
+    margin-bottom:22px;
+    animation:stamp-in .38s cubic-bezier(.3,1.6,.5,1) both;
+  }
+  @keyframes stamp-in{from{opacity:0;transform:rotate(-6deg) scale(2.2)}to{opacity:1;transform:rotate(-6deg) scale(1)}}
+  .result .emoji{font-size:44px;margin-bottom:6px;}
+  .result h3{font-size:26px;font-weight:600;margin-bottom:10px;}
+  .result p{color:var(--muted);max-width:420px;margin:0 auto;font-size:16px;}
+  .restart{
+    margin-top:24px;background:none;border:1px solid var(--line);
+    color:var(--muted);padding:9px 18px;border-radius:8px;
+    font-family:'Public Sans',sans-serif;font-size:13.5px;cursor:pointer;
+  }
+  .restart:hover{color:var(--brass);border-color:var(--brass);}
+
+  /* ── Boletim de amostra ───────────────────────── */
+  .paper{
+    background:var(--paper);color:#241d0f;
+    border-radius:14px;padding:38px 34px;
+    box-shadow:0 24px 60px -20px rgba(0,0,0,.55);
+    position:relative;
+  }
+  .paper::before{
+    content:'CONFIDENCIAL — SÓ ASSINANTES';
+    position:absolute;top:22px;right:-38px;
+    background:var(--signal);color:#fff;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;font-weight:500;letter-spacing:.08em;
+    padding:4px 44px;transform:rotate(35deg);
+  }
+  .paper .masthead{
+    display:flex;justify-content:space-between;align-items:baseline;
+    border-bottom:2px solid #241d0f;padding-bottom:12px;margin-bottom:20px;
+  }
+  .paper .masthead b{font-family:'Fraunces',serif;font-size:20px;}
+  .paper .masthead span{font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6b5f3f;}
+  .paper h4{font-family:'Fraunces',serif;font-size:22px;margin:0 0 12px;}
+  .paper p{margin:0 0 14px;font-size:16px;line-height:1.65;}
+  .paper .highlight{background:#f0d98c;padding:1px 4px;}
+  .paper .tag{
+    display:inline-block;font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;color:var(--signal);border:1px solid var(--signal);
+    padding:2px 9px;border-radius:100px;margin-bottom:14px;
+  }
+
+  /* ── Planos ───────────────────────────────────── */
+  .plans{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  .plan{
+    background:var(--ink-2);border:1.5px solid var(--line);
+    border-radius:16px;padding:30px 26px;
+  }
+  .plan.rec{border-color:var(--brass);position:relative;}
+  .plan.rec::before{
+    content:'RECOMENDADO';
+    position:absolute;top:-11px;left:26px;
+    background:var(--brass);color:var(--ink);
+    font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;
+    padding:3px 10px;border-radius:100px;letter-spacing:.05em;
+  }
+  .plan .name{font-size:14.5px;color:var(--muted);margin-bottom:10px;}
+  .plan .price{font-family:'Fraunces',serif;font-size:34px;font-weight:600;}
+  .plan .price small{font-family:'Public Sans',sans-serif;font-size:14px;color:var(--muted);font-weight:400;}
+  .plan .note{font-size:13.5px;color:var(--brass);margin-top:6px;}
+  .plan ul{list-style:none;padding:0;margin:20px 0 0;font-size:15px;color:var(--muted);}
+  .plan li{padding:7px 0;border-top:1px solid var(--line);}
+  .plan li:first-child{border-top:none;}
+
+  /* ── Footer ───────────────────────────────────── */
+  footer{
+    border-top:1px solid var(--line);
+    padding:36px 0 48px;text-align:center;
+  }
+  footer p{color:var(--muted);font-size:13.5px;max-width:440px;margin:0 auto;line-height:1.6;}
+  footer .brand{font-family:'Fraunces',serif;color:var(--brass);font-size:16px;margin-bottom:10px;}
+
+  @media (max-width:680px){
+    .diffs{grid-template-columns:1fr;}
+    .plans{grid-template-columns:1fr;}
+    .quiz-shell{padding:26px 20px;}
+    .paper{padding:28px 22px;}
+    .paper::before{display:none;}
+  }
+</style>
+</head>
+<body>
+
+  <div class="ticker">
+    <div class="ticker-inner mono">
+      <span><span class="live-dot"></span><b>AO VIVO</b> — edição de hoje já disponível para assinantes</span>
+      <span>07:00 · Reforma tributária: o que muda no seu bolso a partir de agosto</span>
+      <span>07:00 · Câmbio reage a decisão do Banco Central</span>
+      <span>07:00 · O que ninguém te contou sobre a pauta de amanhã no Congresso</span>
+      <span><span class="live-dot"></span><b>AO VIVO</b> — edição de hoje já disponível para assinantes</span>
+      <span>07:00 · Reforma tributária: o que muda no seu bolso a partir de agosto</span>
+      <span>07:00 · Câmbio reage a decisão do Banco Central</span>
+      <span>07:00 · O que ninguém te contou sobre a pauta de amanhã no Congresso</span>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <section class="hero">
+      <div class="eyebrow mono">BOLETIM Nº <span class="num">0847</span> · EDIÇÃO PILOTO</div>
+      <h1 class="headline">Antes do vídeo de hoje<br>ainda estar no ar,<br><em>seu assinante já chega</em><br>sabendo o que perguntar.</h1>
+      <p class="sub">Um boletim diário, às 7h, que traduz a notícia política em uma pergunta só: o que isso muda pra você. O contexto e a opinião completa continuam sendo só no vídeo — o boletim é o aquecimento do dia.</p>
+
+      <div class="stats-row">
+        <div class="stat-pill"><div class="n">3,75 mi</div><div class="l">espectadores/mês</div></div>
+        <div class="stat-pill"><div class="n">65%</div><div class="l">do público tem 55+ anos</div></div>
+        <div class="stat-pill"><div class="n">07:00</div><div class="l">aquecendo pro vídeo da noite</div></div>
+      </div>
+
+      <a href="#quiz" class="cta">Ver como funciona ↓</a>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <div class="eyebrow mono">POR QUE ASSINAR</div>
+        <h2>Não é um resumo do vídeo. É o trailer dele.</h2>
+      </div>
+      <div class="diffs">
+        <div class="diff-card">
+          <div class="k mono">01</div>
+          <h3>Aquecimento, não spoiler</h3>
+          <p>Sai às 7h com o fato do dia. A análise, os bastidores e a opinião do canal continuam exclusivos do vídeo à noite.</p>
+        </div>
+        <div class="diff-card">
+          <div class="k mono">02</div>
+          <h3>Lembrete embutido</h3>
+          <p>Cada edição fecha apontando pro vídeo daquele dia — o boletim vira um alerta a mais na rotina do assinante, não um substituto.</p>
+        </div>
+        <div class="diff-card">
+          <div class="k mono">03</div>
+          <h3>Feito pra essa pessoa</h3>
+          <p>O leitor monta o perfil dele na inscrição. O boletim que ele recebe é filtrado, não genérico.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="quiz">
+      <div class="section-head">
+        <div class="eyebrow mono">EXPERIMENTE</div>
+        <h2>Monte seu perfil</h2>
+      </div>
+
+      <div class="quiz-shell">
+        <div class="quiz-top">
+          <span class="file-no mono">FICHA DE ASSINANTE · Nº 00194</span>
+          <div class="steps">
+            <div class="step-dot" id="dot-1"></div>
+            <div class="step-dot" id="dot-2"></div>
+          </div>
+        </div>
+
+        <div class="q-block active" id="q1">
+          <div class="q-text">O que mais tira o seu sono?</div>
+          <div class="opts">
+            <button class="opt-btn" onclick="answer(1,'economia')">Economia, inflação, meu bolso</button>
+            <button class="opt-btn" onclick="answer(1,'seguranca')">Segurança, Justiça, ordem pública</button>
+          </div>
+        </div>
+
+        <div class="q-block" id="q2">
+          <div class="q-text">Como você prefere receber a notícia?</div>
+          <div class="opts">
+            <button class="opt-btn" onclick="answer(2,'direto')">Direto ao ponto, sem rodeio</button>
+            <button class="opt-btn" onclick="answer(2,'contraponto')">Com o que o outro lado está dizendo também</button>
+          </div>
+        </div>
+
+        <div class="result" id="result">
+          <div class="stamp" id="stamp-label">PERFIL DEFINIDO</div>
+          <div class="emoji" id="r-emoji">💰</div>
+          <h3 id="r-title">Guardião do Bolso</h3>
+          <p id="r-desc">Seu boletim vai priorizar economia, câmbio e o impacto direto no seu dinheiro — sempre direto ao ponto.</p>
+          <button class="restart" onclick="restart()">Refazer</button>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <div class="eyebrow mono">PRÉVIA</div>
+        <h2>Seu boletim de hoje</h2>
+      </div>
+      <div class="paper">
+        <div class="masthead">
+          <b>BOLETIM 07</b>
+          <span id="p-meta">TERÇA-FEIRA · 07:00 BRT · Nº 0847</span>
+        </div>
+        <span class="tag" id="p-tag">GUARDIÃO DO BOLSO</span>
+        <h4 id="p-title">O que a decisão de ontem faz com o seu dinheiro</h4>
+        <p id="p-body">O Banco Central sinalizou mudança na taxa básica de juros. Na prática: quem tem dinheiro guardado em renda fixa deve sentir o efeito já no próximo mês. <span class="highlight">Se você tem CDB ou Tesouro Direto, vale revisar o vencimento antes de outubro.</span></p>
+        <p id="p-hook" style="color:#6b5f3f;font-size:13.5px;">— o porquê dessa decisão e o que ela esconde, só no vídeo de hoje à noite</p>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <div class="eyebrow mono">ASSINATURA</div>
+        <h2>Dois planos, sem pegadinha</h2>
+      </div>
+      <div class="plans">
+        <div class="plan">
+          <div class="name mono">MENSAL</div>
+          <div class="price">R$ 34,90<small>/mês</small></div>
+          <ul>
+            <li>Boletim todo dia às 7h</li>
+            <li>Perfil personalizado</li>
+            <li>Cancela quando quiser</li>
+          </ul>
+        </div>
+        <div class="plan rec">
+          <div class="name mono">ANUAL</div>
+          <div class="price">R$ 19,90<small>/mês</small></div>
+          <div class="note">R$ 238,80 cobrado uma vez · economize 43%</div>
+          <ul>
+            <li>Tudo do plano mensal</li>
+            <li>Live mensal só de assinantes</li>
+            <li>Arquivo completo pesquisável</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    <div class="brand">BOLETIM 07</div>
+    <p>Protótipo para avaliação interna — ainda não está no ar. Feito para mostrar a ideia funcionando, não só descrita.</p>
+  </footer>
+
+<script>
+  const answers = {};
+  const profiles = {
+    'economia|direto': {tag:'GUARDIÃO DO BOLSO', emoji:'💰', title:'Guardião do Bolso',
+      desc:'Seu boletim vai priorizar economia, câmbio e o impacto direto no seu dinheiro — sempre direto ao ponto.',
+      ptitle:'O que a decisão de ontem faz com o seu dinheiro',
+      pbody:'O Banco Central sinalizou mudança na taxa básica de juros. Na prática: quem tem dinheiro guardado em renda fixa deve sentir o efeito já no próximo mês. <span class="highlight">Se você tem CDB ou Tesouro Direto, vale revisar o vencimento antes de outubro.</span>',
+      phook:'— o porquê dessa decisão e o que ela esconde, só no vídeo de hoje à noite'},
+    'economia|contraponto': {tag:'ANALISTA INDEPENDENTE', emoji:'⚖️', title:'Analista Independente',
+      desc:'Você recebe o impacto no seu bolso, mas também o que o governo e a oposição dizem sobre a mesma decisão.',
+      ptitle:'Juros: o que o governo diz, e o que os bancos dizem',
+      pbody:'O Banco Central defende a alta como controle de inflação. Já o mercado financeiro aponta risco de desaceleração da economia já no segundo semestre. <span class="highlight">Os dois lados concordam em um ponto: quem tem dívida no cartão vai sentir primeiro.</span>',
+      phook:'— quem está certo nessa disputa? A análise completa é no vídeo de hoje à noite'},
+    'seguranca|direto': {tag:'VIGILANTE', emoji:'🛡️', title:'Vigilante',
+      desc:'Segurança pública e Justiça em primeiro lugar, sem enrolação — o que mudou e o que isso significa pra sua rua.',
+      ptitle:'Nova lei de segurança: o que muda na prática',
+      pbody:'O projeto aprovado ontem no Senado altera o tempo de resposta exigido das polícias estaduais. <span class="highlight">Nas capitais, isso deve mudar o policiamento de bairro já nos próximos 60 dias.</span>',
+      phook:'— o que a polícia e os moradores dizem sobre isso, só no vídeo de hoje à noite'},
+    'seguranca|contraponto': {tag:'OBSERVADOR IMPARCIAL', emoji:'👁️', title:'Observador Imparcial',
+      desc:'Segurança e Justiça, sempre com as duas leituras — quem defende a lei e quem alerta pros riscos dela.',
+      ptitle:'A lei que divide especialistas em segurança',
+      pbody:'Para uns, a mudança devolve agilidade à polícia. Para outros, abre brecha para excessos sem fiscalização. <span class="highlight">Nos dois casos, o efeito prático só aparece daqui a 60 dias — vamos acompanhar.</span>',
+      phook:'— os dois lados dessa polêmica, cara a cara, só no vídeo de hoje à noite'}
+  };
+
+  function answer(step, value){
+    if(step===1){
+      answers.tema = value;
+      document.getElementById('dot-1').classList.add('done');
+      document.getElementById('q1').classList.remove('active');
+      document.getElementById('q2').classList.add('active');
+    } else {
+      answers.estilo = value;
+      document.getElementById('dot-2').classList.add('done');
+      document.getElementById('q2').classList.remove('active');
+      showResult();
+    }
+  }
+
+  function showResult(){
+    const key = answers.tema + '|' + answers.estilo;
+    const p = profiles[key];
+    document.getElementById('r-emoji').textContent = p.emoji;
+    document.getElementById('r-title').textContent = p.title;
+    document.getElementById('r-desc').textContent = p.desc;
+    document.getElementById('result').classList.add('active');
+
+    document.getElementById('p-tag').textContent = p.tag;
+    document.getElementById('p-title').textContent = p.ptitle;
+    document.getElementById('p-body').innerHTML = p.pbody;
+    document.getElementById('p-hook').textContent = p.phook;
+  }
+
+  function restart(){
+    answers.tema = null; answers.estilo = null;
+    document.getElementById('dot-1').classList.remove('done');
+    document.getElementById('dot-2').classList.remove('done');
+    document.getElementById('result').classList.remove('active');
+    document.getElementById('q2').classList.remove('active');
+    document.getElementById('q1').classList.add('active');
+  }
+</script>
+</body>
+</html>
