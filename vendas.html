@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Boletim 07 — Assine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0B1220; --ink-2:#121B2E; --ink-3:#182238;
+    --paper:#F3EEDF; --brass:#C89B3C; --brass-soft:#8a6a26;
+    --signal:#B23A2E; --text:#E7E3D6; --muted:#8891A3;
+    --line: rgba(200,155,60,.18);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--ink);color:var(--text);font-family:'Public Sans',sans-serif;font-size:19px;line-height:1.7;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3{font-family:'Fraunces',serif;margin:0;letter-spacing:-0.01em;}
+  .mono{font-family:'IBM Plex Mono',monospace;letter-spacing:.04em;}
+  .col{max-width:520px;margin:0 auto;padding:0 24px;}
+  section{padding:52px 0;}
+
+  .hero{padding-top:70px;text-align:center;}
+  .eyebrow{font-size:12.5px;color:var(--brass);text-transform:uppercase;display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);padding:5px 14px;border-radius:100px;margin-bottom:26px;}
+  h1.headline{font-size:clamp(28px,5.5vw,42px);font-weight:600;line-height:1.16;}
+  h1.headline em{font-style:normal;color:var(--brass);}
+
+  .slide p{margin:0 0 15px;font-size:19px;}
+  .slide p.tight{color:var(--muted);font-size:17px;}
+  .slide p.beat{margin:0 0 6px;}
+  .slide p.turn{color:var(--brass);font-weight:600;font-size:20px;}
+  .slide p.q{font-style:italic;color:var(--text);}
+  hr.cut{border:none;border-top:1px solid var(--line);margin:34px 0;}
+
+  .bullets{list-style:none;padding:0;margin:20px 0;}
+  .bullets li{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--line);font-size:16.5px;}
+  .bullets li:first-child{border-top:none;}
+  .bullets li .ic{color:var(--brass);flex-shrink:0;}
+
+  .imagine{background:var(--ink-2);border:1px solid var(--line);border-radius:14px;padding:26px 24px;margin:26px 0;}
+  .imagine .mono{display:block;font-size:11.5px;color:var(--muted);margin-bottom:10px;}
+  .imagine p{margin:0;font-size:17px;color:var(--text);}
+
+  /* planos */
+  .plans{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:10px;}
+  .plan{background:var(--ink-2);border:1.5px solid var(--line);border-radius:16px;padding:26px 22px;}
+  .plan.rec{border-color:var(--brass);position:relative;}
+  .plan.rec::before{content:'RECOMENDADO';position:absolute;top:-11px;left:22px;background:var(--brass);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:500;padding:3px 10px;border-radius:100px;letter-spacing:.05em;}
+  .plan .name{font-size:13.5px;color:var(--muted);margin-bottom:8px;}
+  .plan .price{font-family:'Fraunces',serif;font-size:28px;font-weight:600;}
+  .plan .price small{font-family:'Public Sans',sans-serif;font-size:13px;color:var(--muted);font-weight:400;}
+  .plan .note{font-size:12.5px;color:var(--brass);margin-top:5px;}
+  .plan ul{list-style:none;padding:0;margin:16px 0 0;font-size:13.5px;color:var(--muted);}
+  .plan li{padding:6px 0;border-top:1px solid var(--line);}
+  .plan li:first-child{border-top:none;}
+
+  .cta-wrap{text-align:center;margin-top:30px;}
+  .cta{display:inline-block;width:100%;max-width:340px;background:var(--brass);color:var(--ink);font-weight:700;font-size:17px;padding:17px 30px;border-radius:10px;text-decoration:none;transition:transform .15s, background .15s;}
+  .cta:hover{background:#dcae4a;transform:translateY(-1px);}
+  .fine{font-size:12.5px;color:var(--muted);margin-top:14px;}
+
+  footer{padding:36px 0 50px;text-align:center;}
+  footer p{color:var(--muted);font-size:12.5px;max-width:400px;margin:0 auto;}
+
+  @media (max-width:480px){
+    .plans{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+  <div class="col">
+    <section class="hero">
+      <div class="eyebrow mono">BOLETIM 07 · ASSINATURA</div>
+      <h1 class="headline">São 6h58 da manhã.<br>Você <em>ainda</em> nem levantou.</h1>
+    </section>
+
+    <section class="slide">
+      <p class="beat">Às 7h em ponto, seu celular vibra.</p>
+      <p class="beat">Não é spam. Não é um app de banco.</p>
+      <p class="beat">É a notícia do dia, já traduzida pro que importa pra você.</p>
+      <p class="turn">Antes de escovar os dentes, você já sabe mais do que 90% de quem só vai saber à noite.</p>
+
+      <hr class="cut">
+
+      <p class="tight">Todo mundo recebe a mesma notícia.</p>
+      <p class="tight">Quase ninguém recebe ela do jeito que faz sentido pra vida da pessoa.</p>
+      <p class="q">"E o que isso muda pra mim, no bolso, na minha rotina?"</p>
+      <p class="turn">É exatamente essa pergunta que o boletim responde. Todo dia. Em menos de 2 minutos de leitura.</p>
+
+      <hr class="cut">
+
+      <p class="tight">Você não precisa mais abrir 5 abas pra entender uma notícia.</p>
+      <p class="tight">Não precisa assistir 20 minutos de vídeo pra achar os 30 segundos que interessam pra você.</p>
+      <p class="turn">Alguém já fez esse trabalho. Às 5 da manhã. Pra você ler às 7.</p>
+    </section>
+
+    <section>
+      <h3 style="font-size:22px;font-weight:600;margin-bottom:18px;">O que muda na sua manhã</h3>
+      <ul class="bullets">
+        <li><span class="ic">→</span> Você chega em qualquer conversa já sabendo do assunto — sem precisar fingir que viu a notícia.</li>
+        <li><span class="ic">→</span> Você para de perder tempo separando fato de opinião — o boletim já separa isso pra você.</li>
+        <li><span class="ic">→</span> Você recebe só os temas que escolheu — nada de rolar feed atrás de notícia relevante.</li>
+        <li><span class="ic">→</span> Você chega no vídeo da noite já sabendo o essencial — e curte a análise completa sem perder o fio.</li>
+      </ul>
+
+      <div class="imagine">
+        <span class="mono">DAQUI A 7 DIAS</span>
+        <p>Você abre o celular às 7h, lê em 90 segundos, e passa o resto do dia com uma coisa a menos pra se preocupar: estar por dentro. Já está.</p>
+      </div>
+    </section>
+
+    <section>
+      <h3 style="font-size:22px;font-weight:600;margin-bottom:6px;">Sem pegadinha. Cancela quando quiser.</h3>
+      <p style="color:var(--muted);font-size:15px;margin:0 0 20px;">Dois jeitos de começar — o mesmo boletim nos dois.</p>
+      <div class="plans">
+        <div class="plan">
+          <div class="name mono">MENSAL</div>
+          <div class="price">R$ 34,90<small>/mês</small></div>
+          <ul>
+            <li>Boletim todo dia às 7h</li>
+            <li>Perfil personalizado</li>
+            <li>Cancela quando quiser</li>
+          </ul>
+        </div>
+        <div class="plan rec">
+          <div class="name mono">ANUAL</div>
+          <div class="price">R$ 19,90<small>/mês</small></div>
+          <div class="note">R$ 238,80 cobrado uma vez · economize 43%</div>
+          <ul>
+            <li>Tudo do plano mensal</li>
+            <li>Live mensal só de assinantes</li>
+            <li>Arquivo completo pesquisável</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="cta-wrap">
+        <a href="#" class="cta">Quero começar amanhã de manhã</a>
+        <div class="fine">Leva 40 segundos. O primeiro boletim chega na próxima manhã, às 7h.</div>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    <p>Protótipo para avaliação interna — ainda não está no ar.</p>
+  </footer>
+
+</body>
+</html>

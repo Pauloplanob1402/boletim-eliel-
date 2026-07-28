@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Boletim 07 — Pra Eliel decidir</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0B1220; --ink-2:#121B2E; --ink-3:#182238;
+    --paper:#F3EEDF; --brass:#C89B3C; --brass-soft:#8a6a26;
+    --signal:#B23A2E; --text:#E7E3D6; --muted:#8891A3;
+    --line: rgba(200,155,60,.18);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--ink);color:var(--text);font-family:'Public Sans',sans-serif;font-size:18px;line-height:1.65;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3{font-family:'Fraunces',serif;margin:0;letter-spacing:-0.01em;}
+  .mono{font-family:'IBM Plex Mono',monospace;letter-spacing:.04em;}
+  .wrap{max-width:720px;margin:0 auto;padding:0 24px;}
+  section{padding:56px 0;}
+
+  /* memo tag */
+  .memo-bar{background:var(--ink-2);border-bottom:1px solid var(--line);padding:10px 0;text-align:center;}
+  .memo-bar span{font-size:12.5px;color:var(--brass);}
+
+  .hero{padding:64px 0 40px;text-align:center;}
+  .eyebrow{font-size:12.5px;color:var(--signal);text-transform:uppercase;display:inline-flex;align-items:center;gap:8px;border:1px solid var(--signal);padding:5px 14px;border-radius:100px;margin-bottom:26px;}
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--signal);animation:pulse 1.6s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+  h1.headline{font-size:clamp(30px,5vw,46px);font-weight:600;line-height:1.15;}
+  h1.headline em{font-style:normal;color:var(--brass);}
+  .lead p{max-width:560px;margin:20px auto 0;color:var(--muted);font-size:18px;}
+
+  /* slippery lines */
+  .slip{max-width:520px;margin:0 auto;padding:20px 0 0;}
+  .slip p{margin:0 0 14px;font-size:17px;}
+  .slip p.tight{color:var(--muted);}
+  .slip p.turn{color:var(--brass);font-weight:600;}
+
+  /* loss cards */
+  .loss{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;}
+  .loss-card{background:var(--ink-2);padding:26px 22px;}
+  .loss-card .ic{font-size:22px;margin-bottom:10px;display:block;}
+  .loss-card h3{font-size:16.5px;margin-bottom:8px;font-weight:600;}
+  .loss-card p{color:var(--muted);font-size:14px;margin:0;line-height:1.55;}
+
+  /* prova / unidade */
+  .proof{background:var(--ink-2);border:1px solid var(--line);border-radius:16px;padding:32px 28px;}
+  .proof-row{display:flex;justify-content:space-between;gap:16px;margin-top:22px;flex-wrap:wrap;}
+  .proof-stat{flex:1;min-width:130px;}
+  .proof-stat .n{font-family:'Fraunces',serif;font-size:28px;color:var(--brass);font-weight:600;}
+  .proof-stat .l{font-size:12px;color:var(--muted);margin-top:2px;}
+  .proof p.note{margin-top:20px;color:var(--text);font-size:15px;}
+
+  /* storybrand */
+  .brand-flip{display:flex;gap:22px;align-items:flex-start;}
+  .brand-flip .card{flex:1;background:var(--ink-3);border:1px solid var(--line);border-radius:14px;padding:22px;}
+  .brand-flip .card .k{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--muted);}
+  .brand-flip .card h3{font-size:18px;margin:8px 0;font-weight:600;}
+  .brand-flip .card p{color:var(--muted);font-size:14.5px;margin:0;}
+  .brand-flip .card.you{border-color:var(--brass);}
+  .brand-flip .card.you h3{color:var(--brass);}
+
+  /* urgência final */
+  .close{text-align:center;background:var(--ink-2);border:1px solid var(--signal);border-radius:18px;padding:40px 30px;}
+  .close .tag{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--signal);border:1px solid var(--signal);padding:4px 14px;border-radius:100px;margin-bottom:18px;}
+  .close h2{font-size:clamp(22px,3.6vw,30px);font-weight:600;margin-bottom:14px;}
+  .close p{color:var(--muted);max-width:440px;margin:0 auto 26px;font-size:15.5px;}
+  .cta{display:inline-block;background:var(--brass);color:var(--ink);font-weight:700;font-size:16px;padding:15px 34px;border-radius:10px;text-decoration:none;transition:transform .15s, background .15s;}
+  .cta:hover{background:#dcae4a;transform:translateY(-1px);}
+  .close .fine{margin-top:16px;font-size:12.5px;color:var(--muted);}
+
+  footer{padding:36px 0 50px;text-align:center;}
+  footer p{color:var(--muted);font-size:12.5px;max-width:420px;margin:0 auto;}
+
+  @media (max-width:640px){
+    .loss{grid-template-columns:1fr;}
+    .brand-flip{flex-direction:column;}
+  }
+</style>
+</head>
+<body>
+
+  <div class="memo-bar mono"><span>MEMORANDO INTERNO · BOLETIM 07 · PARA ELIEL</span></div>
+
+  <div class="wrap">
+    <section class="hero">
+      <div class="eyebrow mono"><span class="dot"></span>DECISÃO PENDENTE</div>
+      <h1 class="headline">Seu público já decidiu.<br>Falta só <em>você</em>.</h1>
+      <div class="lead"><p>Você não está decidindo se cria um produto novo. Está decidindo se vai ser o primeiro do seu nicho a dar isso pro seu público — ou se vai ver alguém fazer antes.</p></div>
+    </section>
+
+    <section class="slip">
+      <p class="tight">Hoje, se o YouTube não empurra seu vídeo, ele não sai pra ninguém.</p>
+      <p class="tight">Você não escolhe isso. O algoritmo escolhe.</p>
+      <p class="tight">E se um dia o vídeo atrasar — feriado, imprevisto, o que for — você não tem como avisar seu público.</p>
+      <p class="turn">O boletim resolve exatamente essa lacuna. E resolve hoje, não daqui a 6 meses.</p>
+    </section>
+
+    <section>
+      <div class="loss">
+        <div class="loss-card">
+          <span class="ic">🛡️</span>
+          <h3>Você para de depender só do algoritmo</h3>
+          <p>Uma lista de contato direto que é sua — não do YouTube.</p>
+        </div>
+        <div class="loss-card">
+          <span class="ic">💰</span>
+          <h3>Seu Adsense não sente nada</h3>
+          <p>O boletim empurra pro vídeo. Não substitui ele.</p>
+        </div>
+        <div class="loss-card">
+          <span class="ic">🏁</span>
+          <h3>Ninguém no seu nicho faz isso ainda</h3>
+          <p>Ser o primeiro é o que faz o assinante virar fã.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="proof">
+        <h3 style="font-size:20px;font-weight:600;">Seu público já pediu por isso — só não com essas palavras</h3>
+        <div class="proof-row">
+          <div class="proof-stat"><div class="n">3,75 mi</div><div class="l">espectadores/mês, hábito diário formado</div></div>
+          <div class="proof-stat"><div class="n">65%</div><div class="l">55+ anos — público fiel, não impulsivo</div></div>
+          <div class="proof-stat"><div class="n">90%</div><div class="l">Brasil — nicho concentrado, fácil de servir bem</div></div>
+        </div>
+        <p class="note">Esse não é um público que troca de canal fácil. É um público que já assiste todo dia, na mesma hora, pelo mesmo motivo. Dar um boletim de manhã pra esse tipo de gente não afasta — reforça o hábito que já existe.</p>
+      </div>
+    </section>
+
+    <section>
+      <div class="brand-flip">
+        <div class="card">
+          <div class="k mono">SEM O BOLETIM</div>
+          <h3>Você é o herói sozinho</h3>
+          <p>Carrega a informação, o contexto e o alcance inteiro nas costas de um vídeo por dia.</p>
+        </div>
+        <div class="card you">
+          <div class="k mono">COM O BOLETIM</div>
+          <h3>Você continua sendo o herói</h3>
+          <p>O boletim é só o guia que prepara o público pra chegar mais engajado no que você já faz de melhor: o vídeo.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="close">
+        <div class="tag mono">JANELA DE ENTRADA</div>
+        <h2>Ser o primeiro só funciona se for agora</h2>
+        <p>Cada semana sem o piloto no ar é uma semana a menos de vantagem sobre quem ainda nem pensou nisso no seu nicho.</p>
+        <a href="#" class="cta">Aprovar o piloto</a>
+        <div class="fine">Sem custo pra testar. Sem compromisso de continuar.</div>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    <p>Protótipo para avaliação interna — ainda não está no ar.</p>
+  </footer>
+
+</body>
+</html>
