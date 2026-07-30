@@ -154,6 +154,8 @@
         <button class="chip" data-topic="politica">🏛️ Política</button>
         <button class="chip" data-topic="congresso">📜 Congresso</button>
         <button class="chip" data-topic="seguranca">🛡️ Segurança</button>
+        <button class="chip" data-topic="mito">📖 Mito Histórico</button>
+        <button class="chip" data-topic="cultura">🎶 Cultura</button>
       </div>
 
       <div class="step-label mono"><span>2 · COMO VOCÊ QUER LER</span></div>
@@ -201,10 +203,10 @@
   const content = {
     justica: {
       emoji:'⚖️', label:'Justiça',
-      direto:{tag:'JUSTIÇA', title:'A decisão que quase ninguém cobriu direito',
-        body:'Um tribunal decidiu ontem um caso que muda o entendimento pra situações parecidas — e a cobertura, como sempre, ficou rasa.',
+      direto:{tag:'JUSTIÇA', title:'O precedente de ontem, traduzido sem economês',
+        body:'Uma decisão usou um precedente antigo de um jeito que quase nenhum comentarista vai te explicar direito — a diferença entre o que a lei diz e o que o noticiário disse que ela diz.',
         highlight:'Quem já passou por processo parecido sente o efeito primeiro, antes de virar manchete.',
-        hook:'o que essa decisão abre de precedente, sem filtro, no vídeo de hoje'},
+        hook:'o precedente traduzido sem economês jurídico, no vídeo de hoje'},
       contraponto:{tag:'JUSTIÇA', title:'A decisão que divide juristas',
         body:'Pra uns, é avanço técnico necessário. Pra outros, insegurança jurídica na veia.',
         highlight:'Os dois lados concordam em uma coisa: o efeito prático só aparece nos próximos meses.',
@@ -242,6 +244,28 @@
         body:'Pra uns, devolve agilidade à polícia. Pra outros, abre brecha pra excesso sem fiscalização.',
         highlight:'Nos dois casos, o efeito prático só aparece daqui a 60 dias.',
         hook:'os dois lados dessa polêmica, cara a cara, no vídeo de hoje'}
+    },
+    mito: {
+      emoji:'📖', label:'Mito Histórico',
+      direto:{tag:'HISTÓRIA', title:'A versão que os livros escolares não contam',
+        body:'Uma figura popular romantizada por décadas tem, nos registros da época, um retrato bem diferente do que virou consenso.',
+        highlight:'Quem ouviu essa história na escola nunca ouviu essa parte dela.',
+        hook:'os registros que desmontam o mito, sem filtro, no vídeo de hoje'},
+      contraponto:{tag:'HISTÓRIA', title:'Herói popular ou construção política?',
+        body:'Pra uns, é resgate histórico necessário. Pra outros, é revisionismo com data marcada pra acontecer.',
+        highlight:'Os dois lados concordam numa coisa: a versão oficial deixou parte da história de fora.',
+        hook:'os dois lados da disputa pela memória, sem cortes, no vídeo de hoje'}
+    },
+    cultura: {
+      emoji:'🎶', label:'Cultura',
+      direto:{tag:'CULTURA', title:'A origem que ninguém te contou sobre esse símbolo',
+        body:'Uma tradição que virou cartão-postal do Brasil tem uma origem bem mais dura do que a versão que vira festa.',
+        highlight:'O tipo de história que muda como você vê algo que já viu mil vezes.',
+        hook:'a origem real por trás do símbolo, sem filtro, no vídeo de hoje'},
+      contraponto:{tag:'CULTURA', title:'Tradição ou reescrita?',
+        body:'Pra uns, é preservação cultural. Pra outros, é maquiagem em cima de uma história incômoda.',
+        highlight:'Quem estuda o tema já sabe qual versão pesa mais nos documentos da época.',
+        hook:'as duas leituras da tradição, lado a lado, no vídeo de hoje'}
     }
   };
 
