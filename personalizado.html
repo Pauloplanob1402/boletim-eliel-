@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BOLETIM 07 — Personalização por assinante</title>
+<title>SEM MIMIMI — Personalização por assinante</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -90,14 +90,14 @@
 <body>
   <div class="s07-nav">
     <div class="s07-nav-inner">
-      <a href="index.html" class="s07-nav-brand">BOLETIM 07</a>
+      <a href="index.html" class="s07-nav-brand">SEM MIMIMI</a>
       <div class="s07-nav-links">
-        <a href="index.html">Monte seu perfil</a>
+        <a href="index.html">Monte seu briefing</a>
         <a href="personalizado.html">Personalização</a>
         <a href="edicao.html">Edição real</a>
         <a href="pitch.html">Pitch</a>
         <a href="vendas.html">Vendas</a>
-        <a href="decisao.html" class="s07-cta">Eliel, clica aqui →</a>
+        <a href="decisao.html" class="s07-cta">Pavinatto, clica aqui →</a>
       </div>
     </div>
   </div>
@@ -106,7 +106,7 @@
     <div class="head">
       <div class="eyebrow mono">PERSONALIZAÇÃO POR ASSINANTE</div>
       <h2>Não é só o perfil. É o nome dele.</h2>
-      <p>Digite um nome e veja o boletim se ajustar na hora — é isso que cada assinante recebe, todo dia, com o nome dele.</p>
+      <p>Digite um nome e veja o briefing se ajustar na hora — é isso que cada assinante recebe, todo dia, com o nome dele.</p>
     </div>
 
     <div class="name-box">
@@ -124,11 +124,11 @@
         </div>
       </div>
       <div class="mail-row highlight">
-        <div class="avatar b07">07</div>
+        <div class="avatar b07">SM</div>
         <div class="body">
-          <div class="top"><span class="sender">Boletim 07</span><span class="time">07:00</span></div>
-          <div class="subject" id="mail-subject">Paulo, clica aqui pra não perder dinheiro</div>
-          <div class="snippet">O Banco Central sinalizou mudança na taxa — veja o que isso muda pro seu bolso...</div>
+          <div class="top"><span class="sender">Sem Mimimi</span><span class="time">07:00</span></div>
+          <div class="subject" id="mail-subject">Paulo, clica aqui antes que a decisão te pegue de surpresa</div>
+          <div class="snippet">Um tribunal decidiu ontem um caso que muda o entendimento pra situações parecidas...</div>
         </div>
       </div>
       <div class="mail-row faded">
@@ -139,22 +139,22 @@
         </div>
       </div>
     </div>
-    <div class="caption">↑ é assim que o boletim aparece na caixa de entrada — o nome muda o assunto, não só o conteúdo</div>
+    <div class="caption">↑ é assim que o briefing aparece na caixa de entrada — o nome muda o assunto, não só o conteúdo</div>
 
     <div class="paper">
       <div class="masthead">
-        <b>BOLETIM 07</b>
+        <b>SEM MIMIMI</b>
         <span>TERÇA-FEIRA · 07:00 BRT</span>
       </div>
       <div class="greet" id="mail-greet">Bom dia, Paulo.</div>
-      <div class="sub">Seu perfil: Guardião do Bolso</div>
+      <div class="sub">Seu perfil: Sem Mimimi</div>
 
-      <span class="tag">ECONOMIA</span>
-      <h4>O que a decisão de ontem faz com o seu dinheiro</h4>
-      <p>O Banco Central sinalizou mudança na taxa básica de juros. Na prática: quem tem dinheiro guardado em renda fixa deve sentir o efeito já no próximo mês.</p>
-      <p><span class="highlight">Se você tem CDB ou Tesouro Direto, vale revisar o vencimento antes de outubro.</span></p>
+      <span class="tag">JUSTIÇA</span>
+      <h4>A decisão que quase ninguém cobriu direito</h4>
+      <p>Um tribunal decidiu ontem um caso que muda o entendimento pra situações parecidas — e a cobertura, como sempre, ficou rasa.</p>
+      <p><span class="highlight">Quem já passou por processo parecido sente o efeito primeiro, antes de virar manchete.</span></p>
 
-      <div class="cta-line"><span id="mail-cta">Paulo</span>, a análise completa — e <b>o que isso pode custar se você não agir</b> — é só no vídeo de hoje à noite.</div>
+      <div class="cta-line"><span id="mail-cta">Paulo</span>, o que essa decisão abre de precedente — e <b>o que isso pode significar pro seu caso</b> — é só no vídeo de hoje.</div>
     </div>
   </div>
 
@@ -167,7 +167,7 @@
   function render(){
     let name = input.value.trim();
     if(!name) name = 'Assinante';
-    document.getElementById('mail-subject').textContent = name + ', clica aqui pra não perder dinheiro';
+    document.getElementById('mail-subject').textContent = name + ', clica aqui antes que a decisão te pegue de surpresa';
     document.getElementById('mail-greet').textContent = 'Bom dia, ' + name + '.';
     document.getElementById('mail-cta').textContent = name;
   }
