@@ -115,12 +115,12 @@ header.site{
 .brand:hover{ color: var(--white); }
 .brand span.mark{ color: var(--red); }
 .brand small{
-  font-family: var(--mono); font-size: .6rem; letter-spacing:.1em;
-  color: var(--dim); text-transform:uppercase; font-weight:500;
+  font-family: var(--mono); font-size: .68rem; letter-spacing:.1em;
+  color: var(--white); text-transform:uppercase; font-weight:700;
 }
 nav.primary{ display:flex; flex-wrap: wrap; gap: 2px; }
 nav.primary a{
-  font-family: var(--mono); font-size: .72rem; letter-spacing: .04em;
+  font-family: var(--mono); font-size: .8rem; letter-spacing: .04em;
   color: var(--dim); text-decoration:none;
   padding: 9px 12px; border: 1px solid transparent;
   text-transform: uppercase; font-weight: 500;
