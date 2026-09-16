@@ -7,24 +7,31 @@
 <meta name="description" content="Alexis de Tocqueville (1805–1859) — influência sobre o pensamento de Tiago Pavinatto.">
 <style>
 /* ============================================================
-   SEMMIMIMI — sistema visual (v2 · minimalista)
-   Direto. Reto. Sem excesso.
+   SEMMIMIMI — sistema visual (v3 · paleta clara e harmônica)
+   Direto. Reto. Sem excesso. Sem preto.
    ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Anton&family=Archivo:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
 :root{
-  --bg: #0a0a0b;
-  --bg2: #141415;
-  --bg3: #1c1c1e;
-  --line: #232325;
-  --line-soft: #1a1a1c;
-  --white: #f4f1ea;
-  --dim: #a8a59c;
-  --faint: #6b6963;
-  --red: #e5261a;
-  --red-dark: #9c1a12;
-  --red-glow: rgba(229,38,26,0.10);
+  /* base — papel quente, sem preto */
+  --bg: #fbf6ee;
+  --bg2: #f4ecdd;
+  --bg3: #ede2cd;
+  --line: #e2d5bd;
+  --line-soft: #ebe1cd;
+
+  /* tinta — marrom escuro em vez de preto */
+  --ink: #2b2118;
+  --dim: #6f6252;
+  --faint: #a3937c;
+
+  /* destaque — laranja + dourado (harmonia análoga) */
+  --red: #d9591a;        /* laranja principal — nome mantido por compatibilidade */
+  --red-dark: #a8420f;
+  --red-glow: rgba(217,89,26,0.10);
+  --gold: #b3852c;       /* dourado — segunda cor de apoio */
+  --white: var(--ink);   /* alias — mantém compatibilidade com estilos inline antigos */
 
   --display: 'Anton', 'Archivo', sans-serif;
   --body: 'Archivo', sans-serif;
@@ -39,14 +46,14 @@ html{ scroll-behavior: smooth; }
 body{
   margin:0;
   background: var(--bg);
-  color: var(--white);
+  color: var(--ink);
   font-family: var(--body);
   font-size: 17px;
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
 }
 
-a{ color: var(--white); text-decoration: none; }
+a{ color: var(--ink); text-decoration: none; }
 a:hover{ color: var(--red); }
 a:focus-visible, button:focus-visible{ outline: 2px solid var(--red); outline-offset: 3px; }
 
@@ -56,7 +63,7 @@ h1,h2,h3,h4{
   font-family: var(--display);
   font-weight: 400;
   text-transform: uppercase;
-  color: var(--white);
+  color: var(--ink);
   letter-spacing: -0.01em;
   line-height: 1;
   margin: 0 0 .5em;
@@ -74,7 +81,7 @@ h1,h2,h3,h4{
 
 .wrap{ max-width: var(--max); margin: 0 auto; padding: 0 28px; position:relative; z-index:1; }
 
-/* ---------- STAMP — elemento de assinatura (simplificado) ---------- */
+/* ---------- STAMP — elemento de assinatura ---------- */
 .stamp{
   display:inline-block;
   font-family: var(--mono);
@@ -90,7 +97,7 @@ h1,h2,h3,h4{
 /* ---------- HEADER ---------- */
 header.site{
   position: sticky; top:0; z-index: 50;
-  background: rgba(10,10,11,0.96);
+  background: rgba(251,246,238,0.96);
   border-bottom: 1px solid var(--line);
 }
 .nav-inner{
@@ -100,10 +107,10 @@ header.site{
 }
 .brand{
   font-family: var(--display); font-size: 1.25rem; letter-spacing: .01em;
-  color: var(--white); display:flex; align-items:baseline; gap:.55em;
+  color: var(--ink); display:flex; align-items:baseline; gap:.55em;
   white-space: nowrap; text-transform: uppercase;
 }
-.brand:hover{ color: var(--white); }
+.brand:hover{ color: var(--ink); }
 .brand span.mark{ color: var(--red); }
 .brand small{
   font-family: var(--mono); font-size: .64rem; letter-spacing:.08em;
@@ -117,7 +124,7 @@ nav.primary a{
   text-transform: uppercase; font-weight: 500;
   border-bottom: 1px solid transparent;
 }
-nav.primary a:hover{ color: var(--white); }
+nav.primary a:hover{ color: var(--ink); }
 nav.primary a.active{ color: var(--red); border-bottom-color: var(--red); }
 
 /* ---------- HERO ---------- */
@@ -133,7 +140,7 @@ nav.primary a.active{ color: var(--red); border-bottom-color: var(--red); }
 }
 .hero-meta{ display:flex; gap: 36px; margin-top: 36px; flex-wrap:wrap; }
 .hero-meta div{ font-family: var(--mono); font-size:.68rem; color: var(--faint); text-transform:uppercase; letter-spacing:.05em; }
-.hero-meta strong{ display:block; color: var(--white); font-family: var(--body); font-size: .98rem; margin-top: 5px; text-transform:none; letter-spacing:0; font-weight:600; }
+.hero-meta strong{ display:block; color: var(--ink); font-family: var(--body); font-size: .98rem; margin-top: 5px; text-transform:none; letter-spacing:0; font-weight:600; }
 
 /* ---------- SECTIONS ---------- */
 section{ padding: 72px 0; }
@@ -160,17 +167,17 @@ section.tight{ padding: 44px 0; }
 .card:hover h3{ color: var(--red); }
 .card .tag{
   font-family: var(--mono); font-size:.6rem; letter-spacing:.1em; text-transform:uppercase;
-  color: var(--faint); margin-bottom: 12px; display:block; font-weight:600;
+  color: var(--gold); margin-bottom: 12px; display:block; font-weight:600;
 }
 .card h3{ font-family: var(--body); text-transform:none; font-weight:700; font-size: 1.14rem; letter-spacing:0; margin-bottom: .4em; line-height:1.3; }
 .card p{ color: var(--dim); font-size: .92rem; margin: 0 0 14px; }
-.card .link{ font-family: var(--mono); font-size:.7rem; text-transform: uppercase; letter-spacing:.06em; color: var(--white); font-weight:600; }
+.card .link{ font-family: var(--mono); font-size:.7rem; text-transform: uppercase; letter-spacing:.06em; color: var(--ink); font-weight:600; }
 .card .link:hover{ color: var(--red); }
 
 .chips{ display:flex; flex-wrap:wrap; gap:8px 12px; margin-top: 14px;}
 .chip{
   font-family: var(--mono); font-size: .66rem; letter-spacing:.03em;
-  color: var(--faint); border: none; border-bottom: 1px solid var(--line-soft);
+  color: var(--dim); border: none; border-bottom: 1px solid var(--line);
   padding: 2px 0;
 }
 
@@ -181,7 +188,7 @@ section.tight{ padding: 44px 0; }
   padding: 24px 0; border-top: 1px solid var(--line-soft);
 }
 .thesis:first-child{ border-top: none; }
-.thesis .n{ font-family: var(--mono); color: var(--red); font-size: .95rem; font-weight:600; padding-top: .15em; }
+.thesis .n{ font-family: var(--mono); color: var(--gold); font-size: .95rem; font-weight:600; padding-top: .15em; }
 .thesis h3{ font-family: var(--body); text-transform:none; font-weight:700; font-size: 1.2rem; letter-spacing:0; margin-bottom: .3em; }
 .thesis p{ color: var(--dim); margin: 0; max-width: 62ch; }
 
@@ -200,7 +207,7 @@ section.tight{ padding: 44px 0; }
 /* ---------- QUOTE / MANIFESTO BLOCK ---------- */
 .manifesto{
   font-family: var(--display); font-size: clamp(1.5rem, 3vw, 2.2rem);
-  line-height: 1.2; color: var(--white); max-width: 20ch;
+  line-height: 1.2; color: var(--ink); max-width: 20ch;
   text-transform: uppercase; margin: 0;
 }
 .manifesto span{ color: var(--red); }
@@ -208,8 +215,8 @@ section.tight{ padding: 44px 0; }
 /* ---------- JOURNEY / STEPS ---------- */
 .journey{ display:flex; flex-wrap:wrap; gap: 0; }
 .step{ flex: 1 1 160px; position:relative; padding: 4px 18px 4px 0; }
-.step .k{ font-family: var(--mono); color: var(--red); font-size:.68rem; letter-spacing:.1em; text-transform: uppercase; font-weight:600; }
-.step h4{ font-family: var(--body); font-weight:700; text-transform:none; font-size: 1rem; margin:.35em 0; color:var(--white); }
+.step .k{ font-family: var(--mono); color: var(--gold); font-size:.68rem; letter-spacing:.1em; text-transform: uppercase; font-weight:600; }
+.step h4{ font-family: var(--body); font-weight:700; text-transform:none; font-size: 1rem; margin:.35em 0; color:var(--ink); }
 .step p{ font-size: .86rem; color: var(--dim); margin:0; }
 @media (max-width: 800px){ .step{ padding: 14px 0; border-bottom: 1px solid var(--line-soft); } .step:last-child{ border-bottom:none; } }
 
@@ -223,19 +230,19 @@ section.tight{ padding: 44px 0; }
 .cta-box h2{ font-size: 1.7rem; }
 .field-row{ display:flex; gap: 10px; margin-top: 22px; flex-wrap: wrap; }
 input[type=email], input[type=text]{
-  background: transparent; border: 1px solid var(--line); color: var(--white);
+  background: var(--bg); border: 1px solid var(--line); color: var(--ink);
   padding: 13px 16px; font-family: var(--body); font-size: .95rem;
   flex: 1 1 260px;
 }
 input:focus{ outline:none; border-color: var(--red); }
 input::placeholder{ color: var(--faint); }
 button.btn, a.btn{
-  background: var(--red); color: var(--white); border: 1px solid var(--red); font-family: var(--mono);
+  background: var(--red); color: var(--bg); border: 1px solid var(--red); font-family: var(--mono);
   text-transform: uppercase; letter-spacing:.06em; font-size: .78rem; font-weight: 700;
   padding: 13px 22px; cursor:pointer; text-decoration:none; display:inline-block;
 }
 button.btn:hover, a.btn:hover{ background: transparent; color: var(--red); text-decoration:none; }
-a.btn.ghost{ background: transparent; border: 1px solid var(--line); color: var(--white); }
+a.btn.ghost{ background: transparent; border: 1px solid var(--line); color: var(--ink); }
 a.btn.ghost:hover{ border-color: var(--red); color: var(--red); background:transparent; }
 
 /* ---------- FOOTER ---------- */
@@ -244,7 +251,7 @@ footer.site .wrap{ display:flex; justify-content:space-between; flex-wrap:wrap; 
 footer.site .cols{ display:flex; gap: 56px; flex-wrap:wrap; }
 footer.site h5{
   font-family: var(--mono); font-size:.66rem; letter-spacing:.1em; text-transform:uppercase;
-  color: var(--faint); margin: 0 0 14px; font-weight:600;
+  color: var(--gold); margin: 0 0 14px; font-weight:600;
 }
 footer.site ul{ list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap: 8px; }
 footer.site a{ color: var(--dim); font-size: .87rem; }
@@ -265,7 +272,7 @@ footer.site a:hover{ color: var(--red); }
 .related{ margin-top: 20px; }
 
 .placeholder-note{
-  border-left: 2px solid var(--line-soft); background: transparent;
+  border-left: 2px solid var(--line); background: transparent;
   padding: 4px 0 4px 16px; font-family: var(--mono); font-size: .72rem;
   color: var(--faint); margin: 20px 0;
 }
@@ -284,10 +291,10 @@ footer.site a:hover{ color: var(--red); }
 .issue h1{ font-size: clamp(1.8rem, 3.6vw, 2.5rem); max-width: 22ch; }
 .issue h2{ font-family: var(--body); font-size: 1.3rem; text-transform:none; font-weight:700; letter-spacing:0; margin-top: 1.5em; }
 .issue p{ color: var(--dim); font-size: 1rem; }
-.issue p.lead{ color: var(--white); font-size: 1.1rem; font-weight: 500; }
+.issue p.lead{ color: var(--ink); font-size: 1.1rem; font-weight: 500; }
 .issue ul{ color: var(--dim); padding-left: 20px; }
 .issue ul li{ margin-bottom: 8px; }
-.issue .sign{ font-family: var(--display); text-transform:uppercase; font-size:1.2rem; color:var(--white); margin-top:32px; }
+.issue .sign{ font-family: var(--display); text-transform:uppercase; font-size:1.2rem; color:var(--ink); margin-top:32px; }
 @media (max-width: 640px){ .issue{ padding: 0; } }
 
 @media (max-width: 640px){
