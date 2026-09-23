@@ -176,13 +176,22 @@ O Supabase não deixa criar usuário de Auth só com SQL. Faça assim:
 4. Defina `CRON_SECRET` com um valor aleatório longo (ex.: `openssl rand -hex 32`) — a
    Vercel usa isso automaticamente como Bearer token ao chamar os crons definidos em
    `vercel.json`.
-5. **CONFIGURAR/VERIFICAR**: o `vercel.json` deste projeto agenda o cron
-   `/api/cron/newsletters` a cada 15 minutos (`*/15 * * * *`). Cron jobs no plano **Hobby**
-   da Vercel só rodam **uma vez por dia** — se você estiver no plano Hobby, ajuste o
-   `schedule` em `vercel.json` para algo como `0 8 * * *` (uma vez por dia) ou faça upgrade
-   para o plano Pro, que permite frequência maior. Confirme os limites atuais em
-   https://vercel.com/docs/cron-jobs/usage-and-pricing antes de contar com o agendamento
-   de minuto a minuto.
+5. **Já ajustado para o plano Hobby**: `vercel.json` roda o cron `/api/cron/newsletters`
+   uma vez por dia, às **11:00 UTC (08:00 no horário de Brasília)** — `"0 11 * * *"`. Isso
+   porque o plano **Hobby** da Vercel só permite cron 1x/dia; uma expressão como
+   `*/15 * * * *` (a cada 15 min) **derruba o deploy** com o erro "Hobby accounts are
+   limited to daily cron jobs".
+   - **O que isso significa na prática**: o envio de uma newsletter agendada só acontece
+     na próxima passada do cron das 08:00, não no minuto exato que você escolheu no admin.
+     Se você agendar para terça às 09:00, ela sai no cron de quarta às 08:00 — porque o
+     cron busca `scheduled_at <= agora`, então "atrasado" ainda é pego, só não no horário
+     certinho. Para newsletters que saem sempre de manhã (terça/quinta), rodar 1x por dia
+     de manhã já cobre o fluxo real de uso.
+   - Se algum dia precisar de precisão maior (ex.: agendar pra um horário exato do dia),
+     migre para o plano **Pro** e troque o `schedule` para algo como `*/15 * * * *`.
+     Confirme os limites atuais em https://vercel.com/docs/cron-jobs/usage-and-pricing.
+   - Se seu público estiver em outro fuso, ajuste o `11` em `vercel.json` (o valor é em
+     UTC, não no horário local).
 6. Configure o domínio customizado normalmente em **Settings → Domains**.
 
 ## 10. Variáveis de ambiente (resumo)
