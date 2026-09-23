@@ -2,6 +2,7 @@
 // sem tocar na tabela newsletter_sends nem nos assinantes reais.
 import { requireAdminApi } from '../../../lib/supabase/requireAdminApi';
 import { renderNewsletter } from '../../../lib/newsletter/render';
+import { estimateReadingMinutes } from '../../../lib/newsletter/readingTime';
 import { buildNewsletterEmailHtml, buildNewsletterEmailText } from '../../../lib/newsletter/emailTemplate';
 import { emailProvider } from '../../../lib/sender/client';
 
@@ -11,7 +12,7 @@ export default async function handler(req, res) {
   const auth = await requireAdminApi(req);
   if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
 
-  const { toEmail, title, subject, preheader, hero_image_url, content_html } = req.body || {};
+  const { toEmail, title, subject, preheader, hero_image_url, content_html, why_it_matters, id } = req.body || {};
   if (!toEmail || !content_html || !subject) {
     return res.status(400).json({ error: 'Informe o e-mail de teste, o assunto e o conteúdo.' });
   }
@@ -19,8 +20,19 @@ export default async function handler(req, res) {
   const sampleSubscriber = { nome: 'Teste', email: toEmail };
   const personalized = renderNewsletter(content_html, sampleSubscriber);
   const unsubscribeUrl = `${process.env.APP_URL}/api/unsubscribe?email=${encodeURIComponent(toEmail)}&token=teste`;
+  const readingMinutes = estimateReadingMinutes(content_html);
 
-  const html = buildNewsletterEmailHtml({ title, preheader, heroImageUrl: hero_image_url, bodyHtml: personalized, unsubscribeUrl });
+  const html = buildNewsletterEmailHtml({
+    title,
+    preheader,
+    heroImageUrl: hero_image_url,
+    bodyHtml: personalized,
+    readingMinutes,
+    whyItMatters: why_it_matters,
+    shareUrl: `${process.env.APP_URL}/edicoes/${id || 'preview'}`,
+    // Enquete desativada no teste (sem newsletter_id/subscriber real para gravar o voto).
+    unsubscribeUrl,
+  });
   const text = buildNewsletterEmailText({ title, bodyHtml: personalized, unsubscribeUrl });
 
   try {

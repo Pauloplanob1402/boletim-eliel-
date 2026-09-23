@@ -13,10 +13,24 @@ export async function getServerSideProps(context) {
     .order('created_at', { ascending: false })
     .limit(200);
 
-  return { props: { adminUser: adminResult.props.adminUser, assinantes: assinantes || [] } };
+  // Canal exclusivo de feedback dos assinantes ("Superfãs") — mensagens
+  // enviadas via /minha-conta, ver pages/api/account/feedback.js.
+  const { data: mensagens } = await admin
+    .from('subscriber_messages')
+    .select('id, message, status, created_at, profiles(nome, email)')
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  return {
+    props: {
+      adminUser: adminResult.props.adminUser,
+      assinantes: assinantes || [],
+      mensagens: mensagens || [],
+    },
+  };
 }
 
-export default function AssinantesPage({ adminUser, assinantes }) {
+export default function AssinantesPage({ adminUser, assinantes, mensagens }) {
   return (
     <AdminLayout title="Assinantes" adminUser={adminUser}>
       <div className="admin-table-wrap">
@@ -49,6 +63,37 @@ export default function AssinantesPage({ adminUser, assinantes }) {
             )}
           </tbody>
         </table>
+      </div>
+
+      <div style={{ marginTop: 40 }}>
+        <h2 className="admin-title" style={{ fontSize: '1.15rem', marginBottom: 16 }}>
+          Mensagens dos assinantes (canal direto)
+        </h2>
+        <div className="admin-table-wrap">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>De</th>
+                <th>Mensagem</th>
+                <th>Quando</th>
+              </tr>
+            </thead>
+            <tbody>
+              {mensagens.map((m) => (
+                <tr key={m.id}>
+                  <td className="strong" style={{ whiteSpace: 'nowrap' }}>{m.profiles?.nome || m.profiles?.email || '—'}</td>
+                  <td style={{ whiteSpace: 'normal', maxWidth: 480 }}>{m.message}</td>
+                  <td>{new Date(m.created_at).toLocaleString('pt-BR')}</td>
+                </tr>
+              ))}
+              {mensagens.length === 0 && (
+                <tr>
+                  <td colSpan={3}>Nenhuma mensagem ainda.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </AdminLayout>
   );

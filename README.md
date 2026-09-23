@@ -248,3 +248,41 @@ Veja o arquivo `.env.example` — cada uma está comentada com onde obtê-la.
   dedicado de teste de 1 e-mail separado de campanha. `lib/sender/client.js` contorna isso
   criando um grupo temporário de 1 assinante — funciona, mas vale checar no painel da
   Sender se existe uma opção nativa antes de depender disso.
+
+---
+
+## 13. Funcionalidades de growth adicionadas (Smart Brevity, viralidade, hábito, superfãs, A/B)
+
+**Antes de usar em produção**, rode `supabase/migration_002_growth_features.sql` no SQL
+Editor do Supabase (schema.sql já foi atualizado também, mas se seu banco já existe, use a
+migração — ela é segura rodar mais de uma vez).
+
+Resumo do que foi adicionado, arquivo por arquivo:
+
+| Funcionalidade | Arquivos principais |
+|---|---|
+| Tempo de leitura + "Por que isso importa" | `lib/newsletter/readingTime.js`, `lib/newsletter/emailTemplate.js`, campo novo no editor (`pages/admin/newsletters/nova.js`) |
+| Botões de compartilhar (WhatsApp/X/e-mail) + página pública de cada edição | `lib/newsletter/emailTemplate.js` (`buildShareBlock`), `pages/edicoes/[id].js` |
+| Selo de prova social (contagem real de assinantes) | `pages/index.js`, `pages/assinar.js` |
+| E-mail de boas-vindas / onboarding | `lib/newsletter/emailTemplate.js` (`buildWelcomeEmailHtml`), `pages/api/subscribe.js` |
+| Enquete de 1 clique no fim da edição | `lib/newsletter/emailTemplate.js` (`buildRatingBlock`), `pages/api/newsletter/feedback.js` |
+| Arquivo de edições + canal direto de feedback ("Superfãs") | `pages/minha-conta.js`, `pages/api/account/newsletters.js`, `pages/api/account/feedback.js`, painel em `pages/admin/assinantes.js` |
+| Teste A/B de assunto | `pages/admin/newsletters/nova.js` (campo "Assunto B"), `lib/newsletter/dispatch.js` (divide a lista e envia 2 campanhas) |
+
+**CONFIGURAR/VERIFICAR** — dois pontos que dependem de o painel da Sender se comportar como
+a documentação pública sugere (confirme na prática antes de confiar em produção):
+- O merge tag `{$email}` usado nos links de compartilhar/enquete dentro do corpo do e-mail
+  em massa — precisa que a Sender substitua isso pelo e-mail real de cada destinatário ao
+  montar a campanha.
+- O campo personalizado `nome` criado ao cadastrar o assinante (`lib/sender/client.js`) —
+  precisa bater com o nome do campo que a Sender realmente usa para o merge tag `{$nome}`.
+
+**Sobre o e-mail de boas-vindas**: ele é disparado assim que o formulário de `/assinar` é
+enviado — ou seja, **antes** da confirmação de pagamento pelo Mercado Pago. O texto foi
+escrito para não prometer nada que ainda não aconteceu ("sua assinatura está sendo
+processada"), só para não anunciar acesso que ainda depende do webhook confirmar o
+pagamento.
+
+**Sobre o teste A/B**: a divisão é 50/50 simples (sem significância estatística), e o
+resultado por variante fica em `newsletter_sends.subject_variant` — cruze com
+`newsletter_feedback` manualmente por enquanto (não há dashboard de comparação A/B pronto).

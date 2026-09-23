@@ -1,10 +1,26 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import SiteLayout from '../components/SiteLayout';
+import { createAdminClient } from '../lib/supabase/adminClient';
 
 const DIAS = ['segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado', 'domingo'];
 
-export default function AssinarPage() {
+export async function getServerSideProps() {
+  let subscriberCount = 0;
+  try {
+    const admin = createAdminClient();
+    const { count } = await admin
+      .from('newsletter_subscribers')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'active');
+    subscriberCount = count || 0;
+  } catch (err) {
+    console.error('Falha ao buscar contagem de assinantes:', err.message);
+  }
+  return { props: { subscriberCount } };
+}
+
+export default function AssinarPage({ subscriberCount }) {
   const router = useRouter();
   const [form, setForm] = useState({
     nome: '',
@@ -75,6 +91,23 @@ export default function AssinarPage() {
             Você já viu uma edição inteira. Sabe o tom, sabe o nível de detalhe. Agora é só
             decidir a frequência do plano e os seus dados de assinante.
           </p>
+          {subscriberCount > 0 && (
+            <span
+              style={{
+                display: 'inline-block',
+                fontFamily: 'var(--mono)',
+                fontSize: '.78rem',
+                letterSpacing: '.04em',
+                textTransform: 'uppercase',
+                color: 'var(--dim)',
+                border: '1px solid var(--line)',
+                padding: '8px 16px',
+                marginTop: 6,
+              }}
+            >
+              Junte-se a +{subscriberCount} leitores que não aceitam mimimi
+            </span>
+          )}
         </div>
       </section>
 

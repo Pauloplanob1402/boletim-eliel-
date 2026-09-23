@@ -21,6 +21,13 @@ export default function MinhaContaPage() {
   const [cancelLoading, setCancelLoading] = useState(false);
   const [cancelled, setCancelled] = useState(false);
 
+  const [edicoes, setEdicoes] = useState(null);
+  const [edicoesError, setEdicoesError] = useState('');
+  const [feedbackMessage, setFeedbackMessage] = useState('');
+  const [feedbackSending, setFeedbackSending] = useState(false);
+  const [feedbackSent, setFeedbackSent] = useState(false);
+  const [feedbackError, setFeedbackError] = useState('');
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => setSession(s));
@@ -47,8 +54,55 @@ export default function MinhaContaPage() {
         .maybeSingle();
       setSubscription(sub);
       setLoadingData(false);
+
+      // Seção VIP ("Superfãs"): só busca o arquivo se a assinatura estiver ativa.
+      if (sub?.status === 'active') {
+        try {
+          const {
+            data: { session: freshSession },
+          } = await supabase.auth.getSession();
+          const res = await fetch('/api/account/newsletters', {
+            headers: { Authorization: `Bearer ${freshSession?.access_token}` },
+          });
+          const data = await res.json();
+          if (res.ok) {
+            setEdicoes(data.newsletters);
+          } else {
+            setEdicoesError(data.error || 'Não foi possível carregar o arquivo agora.');
+          }
+        } catch {
+          setEdicoesError('Erro de conexão ao carregar o arquivo.');
+        }
+      }
     })();
   }, [session, supabase]);
+
+  async function handleSendFeedback(e) {
+    e.preventDefault();
+    if (!feedbackMessage.trim()) return;
+    setFeedbackSending(true);
+    setFeedbackError('');
+    try {
+      const {
+        data: { session: freshSession },
+      } = await supabase.auth.getSession();
+      const res = await fetch('/api/account/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${freshSession?.access_token}` },
+        body: JSON.stringify({ message: feedbackMessage }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setFeedbackError(data.error || 'Não foi possível enviar agora.');
+      } else {
+        setFeedbackSent(true);
+        setFeedbackMessage('');
+      }
+    } catch {
+      setFeedbackError('Erro de conexão ao enviar.');
+    }
+    setFeedbackSending(false);
+  }
 
   async function sendMagicLink(e) {
     e.preventDefault();
@@ -189,6 +243,61 @@ export default function MinhaContaPage() {
 
               {!loadingData && !subscription && (
                 <p className="lede">Nenhuma assinatura encontrada para esta conta ainda.</p>
+              )}
+
+              {!loadingData && subscription?.status === 'active' && (
+                <div style={{ marginTop: 36 }}>
+                  <span className="eyebrow">Área de assinante</span>
+                  <h2 style={{ fontSize: '1.3rem', marginBottom: 16 }}>Suas edições</h2>
+
+                  {edicoesError && <div className="admin-alert error">{edicoesError}</div>}
+
+                  {edicoes === null && !edicoesError && <p className="lede">Carregando arquivo…</p>}
+
+                  {edicoes && edicoes.length === 0 && (
+                    <p className="lede">Ainda não há edições enviadas no arquivo.</p>
+                  )}
+
+                  {edicoes && edicoes.length > 0 && (
+                    <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 32px', display: 'grid', gap: 10 }}>
+                      {edicoes.map((n) => (
+                        <li key={n.id} style={{ border: '1px solid var(--line)', padding: '14px 16px' }}>
+                          <a href={`/edicoes/${n.id}`} style={{ fontWeight: 600, display: 'block', marginBottom: 4 }}>
+                            {n.title}
+                          </a>
+                          <span style={{ fontFamily: 'var(--mono)', fontSize: '.72rem', color: 'var(--faint)' }}>
+                            {n.sent_at ? new Date(n.sent_at).toLocaleDateString('pt-BR') : ''}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  <h2 style={{ fontSize: '1.3rem', marginBottom: 12 }}>Fale direto com a equipe</h2>
+                  <p className="lede" style={{ marginBottom: 16 }}>
+                    Assinante ativo tem canal direto — sua mensagem cai direto pra equipe, sem formulário genérico de
+                    suporte.
+                  </p>
+                  {feedbackSent ? (
+                    <div className="admin-alert success">Mensagem enviada. Obrigado pelo retorno!</div>
+                  ) : (
+                    <form onSubmit={handleSendFeedback}>
+                      <div className="form-field">
+                        <textarea
+                          rows={4}
+                          value={feedbackMessage}
+                          onChange={(e) => setFeedbackMessage(e.target.value)}
+                          placeholder="O que você quer dizer pra gente?"
+                          required
+                        />
+                      </div>
+                      {feedbackError && <div className="admin-alert error">{feedbackError}</div>}
+                      <button type="submit" className="btn" disabled={feedbackSending}>
+                        {feedbackSending ? 'Enviando…' : 'Enviar mensagem'}
+                      </button>
+                    </form>
+                  )}
+                </div>
               )}
             </>
           )}

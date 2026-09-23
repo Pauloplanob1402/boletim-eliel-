@@ -35,9 +35,12 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
   const [id, setId] = useState(initialNewsletter?.id || null);
   const [title, setTitle] = useState(initialNewsletter?.title || '');
   const [subject, setSubject] = useState(initialNewsletter?.subject || '');
+  const [subjectB, setSubjectB] = useState(initialNewsletter?.subject_b || '');
   const [preheader, setPreheader] = useState(initialNewsletter?.preheader || '');
   const [heroImageUrl, setHeroImageUrl] = useState(initialNewsletter?.hero_image_url || '');
+  const [whyItMatters, setWhyItMatters] = useState(initialNewsletter?.why_it_matters || '');
   const [status, setStatus] = useState(initialNewsletter?.status || 'draft');
+  const [readingMinutes, setReadingMinutes] = useState(0);
 
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -58,6 +61,8 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
     if (editorRef.current && initialNewsletter?.content_html) {
       editorRef.current.innerHTML = initialNewsletter.content_html;
     }
+    updateReadingTime();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialNewsletter]);
 
   function exec(command, value = null) {
@@ -96,6 +101,16 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
 
   function handleQuote() {
     insertHtml('<blockquote style="border-left:3px solid #d9591a; margin:20px 0; padding:4px 0 4px 16px; color:#6f6252; font-style:italic;">Cite algo aqui</blockquote>');
+  }
+
+  function handleDestaque() {
+    insertHtml('<div style="background:#f4ecdd; border-left:3px solid #d9591a; padding:14px 18px; margin:20px 0;"><strong>Destaque:</strong> escreva aqui o resumo em 1-2 frases.</div>');
+  }
+
+  function updateReadingTime() {
+    const text = (editorRef.current?.innerText || '').trim();
+    const words = text ? text.split(/\s+/).length : 0;
+    setReadingMinutes(Math.max(1, Math.round(words / 200)));
   }
 
   function handleYoutube() {
@@ -150,8 +165,10 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
           id,
           title,
           subject,
+          subject_b: subjectB,
           preheader,
           hero_image_url: heroImageUrl,
+          why_it_matters: whyItMatters,
           content_html: getContentHtml(),
         }),
       });
@@ -178,7 +195,7 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
     const res = await fetch('/api/newsletter/preview', {
       method: 'POST',
       headers,
-      body: JSON.stringify({ title, preheader, hero_image_url: heroImageUrl, content_html: getContentHtml() }),
+      body: JSON.stringify({ id, title, preheader, hero_image_url: heroImageUrl, why_it_matters: whyItMatters, content_html: getContentHtml() }),
     });
     const data = await res.json();
     if (res.ok) {
@@ -199,7 +216,7 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
       const res = await fetch('/api/newsletter/send-test', {
         method: 'POST',
         headers,
-        body: JSON.stringify({ toEmail: testEmail, title, subject, preheader, hero_image_url: heroImageUrl, content_html: getContentHtml() }),
+        body: JSON.stringify({ toEmail: testEmail, id, title, subject, preheader, hero_image_url: heroImageUrl, why_it_matters: whyItMatters, content_html: getContentHtml() }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -301,14 +318,38 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
           <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Sem Mimimi — Edição #48" />
         </div>
         <div className="form-field">
-          <label>Assunto do e-mail</label>
+          <label>Assunto do e-mail (A)</label>
           <input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="O que ninguém te contou sobre..." />
+        </div>
+      </div>
+
+      <div className="form-field">
+        <label>Assunto B (opcional — ativa teste A/B)</label>
+        <input value={subjectB} onChange={(e) => setSubjectB(e.target.value)} placeholder="Deixe em branco para enviar só a variante A" />
+        <div style={{ marginTop: 8, fontSize: '.82rem', color: 'var(--dim)', lineHeight: 1.6 }}>
+          Checklist antes de enviar: tem menos de 50 caracteres? Gera curiosidade sem ser clickbait vazio? É direto,
+          sem enrolação? Se preencher os dois assuntos, metade dos assinantes recebe A e metade recebe B — o
+          resultado (enquete de fim de edição) fica registrado por variante em <strong>Envios</strong>.
         </div>
       </div>
 
       <div className="form-field">
         <label>Pré-header</label>
         <input value={preheader} onChange={(e) => setPreheader(e.target.value)} placeholder="Aparece ao lado do assunto na caixa de entrada" />
+      </div>
+
+      <div className="form-field">
+        <label>Por que isso importa (Smart Brevity — 1 tópico por linha)</label>
+        <textarea
+          rows={3}
+          value={whyItMatters}
+          onChange={(e) => setWhyItMatters(e.target.value)}
+          placeholder={'O STF suspendeu o julgamento mais importante do ano\nUm banqueiro preso deixou 52 mensagens que ninguém explicou\nVocê não vai ver isso resumido em nenhum outro lugar'}
+        />
+        <div className="trust-note" style={{ marginTop: 6 }}>
+          Vira um bloco em destaque no topo do e-mail, logo abaixo do título — antes do leitor decidir se vale a
+          pena continuar lendo.
+        </div>
       </div>
 
       <div className="form-field">
@@ -326,7 +367,12 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
       </div>
 
       <div className="form-field">
-        <label>Conteúdo</label>
+        <label>
+          Conteúdo{' '}
+          <span style={{ textTransform: 'none', fontFamily: 'var(--body)', color: 'var(--dim)', fontWeight: 400 }}>
+            — ⏱️ leitura estimada de {readingMinutes} min
+          </span>
+        </label>
         <div className="editor-toolbar">
           <button type="button" onClick={() => exec('bold')}><strong>N</strong></button>
           <button type="button" onClick={() => exec('italic')}><em>I</em></button>
@@ -339,11 +385,12 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
           <button type="button" onClick={handleImage}>Imagem</button>
           <button type="button" onClick={handleSeparator}>Separador</button>
           <button type="button" onClick={handleQuote}>Citação</button>
+          <button type="button" onClick={handleDestaque}>Destaque</button>
           <button type="button" onClick={() => exec('justifyLeft')}>Esq.</button>
           <button type="button" onClick={() => exec('justifyCenter')}>Centro</button>
           <button type="button" onClick={handleYoutube}>▶ YouTube</button>
         </div>
-        <div ref={editorRef} className="editor-canvas" contentEditable suppressContentEditableWarning />
+        <div ref={editorRef} className="editor-canvas" contentEditable suppressContentEditableWarning onInput={updateReadingTime} onBlur={updateReadingTime} />
         <div className="trust-note" style={{ marginTop: 8 }}>
           Use {'{{nome}}'} em qualquer lugar do texto para personalizar com o nome do assinante (vira &quot;Olá.&quot; se ele não informou nome).
         </div>
@@ -386,8 +433,13 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
           </p>
           <ul style={{ marginBottom: 20 }}>
             <li>
-              <strong>Assunto:</strong> {subject || '(sem assunto)'}
+              <strong>Assunto A:</strong> {subject || '(sem assunto)'}
             </li>
+            {subjectB && (
+              <li>
+                <strong>Assunto B:</strong> {subjectB} — teste A/B ativo, metade dos assinantes recebe cada variante.
+              </li>
+            )}
             <li>
               <strong>Remetente:</strong> Sem Mimimi
             </li>

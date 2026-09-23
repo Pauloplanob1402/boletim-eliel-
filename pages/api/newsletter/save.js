@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   const auth = await requireAdminApi(req);
   if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
 
-  const { id, title, subject, preheader, content_html, content_text, hero_image_url } = req.body || {};
+  const { id, title, subject, subject_b, preheader, content_html, content_text, hero_image_url, why_it_matters } = req.body || {};
 
   if (!title || !subject || !content_html) {
     return res.status(400).json({ error: 'Título, assunto e conteúdo são obrigatórios.' });
@@ -19,10 +19,12 @@ export default async function handler(req, res) {
   const payload = {
     title,
     subject,
+    subject_b: subject_b || null,
     preheader: preheader || null,
     content_html,
     content_text: content_text || null,
     hero_image_url: hero_image_url || null,
+    why_it_matters: why_it_matters || null,
     updated_at: new Date().toISOString(),
   };
 

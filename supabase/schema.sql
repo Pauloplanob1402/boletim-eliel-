@@ -120,6 +120,13 @@ create table if not exists newsletters (
   content_html text not null,
   content_text text,
   hero_image_url text,
+  -- Smart Brevity: resumo "por que isso importa" (TL;DR) exibido em destaque
+  -- no topo do e-mail — ver lib/newsletter/emailTemplate.js.
+  why_it_matters text,
+  -- Teste A/B de assunto (opcional). Se preenchido, o envio real divide os
+  -- assinantes ~50/50 entre "subject" (variante A) e "subject_b" (variante B)
+  -- — ver lib/newsletter/dispatch.js.
+  subject_b text,
   status text not null default 'draft' check (status in ('draft','scheduled','sending','sent','failed')),
   scheduled_at timestamptz,
   sent_at timestamptz,
@@ -144,6 +151,8 @@ create table if not exists newsletter_sends (
   email text,
   sender_message_id text,
   status text not null default 'pending' check (status in ('pending','sent','failed')),
+  -- Qual variante de assunto (teste A/B) este destinatário recebeu.
+  subject_variant text default 'A' check (subject_variant in ('A','B')),
   sent_at timestamptz,
   error_message text,
   created_at timestamptz not null default now()
@@ -164,6 +173,34 @@ create table if not exists revenue_allocations (
 );
 create index if not exists idx_revenue_allocations_payment_id on revenue_allocations(payment_id);
 
+-- ------------------------------------------------------------
+-- newsletter_feedback: enquete rápida no fim de cada edição
+-- (excelente / boa / pode_melhorar) — 1 voto por assinante por edição.
+-- ------------------------------------------------------------
+create table if not exists newsletter_feedback (
+  id uuid primary key default gen_random_uuid(),
+  newsletter_id uuid references newsletters(id) on delete cascade,
+  subscriber_id uuid references newsletter_subscribers(id) on delete cascade,
+  rating text not null check (rating in ('excelente','boa','pode_melhorar')),
+  created_at timestamptz not null default now(),
+  unique (newsletter_id, subscriber_id)
+);
+create index if not exists idx_newsletter_feedback_newsletter_id on newsletter_feedback(newsletter_id);
+
+-- ------------------------------------------------------------
+-- subscriber_messages: canal de feedback direto do assinante ativo
+-- (seção "Superfãs" em /minha-conta)
+-- ------------------------------------------------------------
+create table if not exists subscriber_messages (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references profiles(id) on delete cascade,
+  message text not null,
+  status text not null default 'new' check (status in ('new','read','answered')),
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_subscriber_messages_user_id on subscriber_messages(user_id);
+create index if not exists idx_subscriber_messages_created_at on subscriber_messages(created_at);
+
 -- Regra de divisão fixa (60/20/20) — ver lib/mercadopago/client.js -> calculateRevenueSplit()
 -- e pages/api/mercadopago/webhook.js, que já inserem essas linhas a cada
 -- pagamento aprovado. Esta tabela é só contábil: NÃO faz nenhuma transferência
@@ -181,6 +218,8 @@ alter table newsletter_subscribers enable row level security;
 alter table newsletters enable row level security;
 alter table newsletter_sends enable row level security;
 alter table revenue_allocations enable row level security;
+alter table newsletter_feedback enable row level security;
+alter table subscriber_messages enable row level security;
 
 -- Helper: é admin? (evita repetir a subquery em toda policy)
 create or replace function is_admin()
@@ -224,6 +263,15 @@ create policy "newsletter_sends_admin_only" on newsletter_sends
 -- revenue_allocations: só admin.
 create policy "revenue_allocations_admin_only" on revenue_allocations
   for all using (is_admin()) with check (is_admin());
+
+-- newsletter_feedback: admin vê tudo; a inserção do voto é feita pelo backend
+-- (service role) a partir do link de e-mail, não direto pelo cliente.
+create policy "newsletter_feedback_admin_read" on newsletter_feedback
+  for select using (is_admin());
+
+-- subscriber_messages: usuário vê/insere só as próprias mensagens; admin vê tudo.
+create policy "subscriber_messages_own_or_admin" on subscriber_messages
+  for select using (auth.uid() = user_id or is_admin());
 
 -- ============================================================
 -- STORAGE — bucket para imagens de newsletter (hero image / upload no editor)

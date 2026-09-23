@@ -5,6 +5,8 @@
 // pages/api/mercadopago/webhook.js).
 import { createAdminClient } from '../../lib/supabase/adminClient';
 import { createSubscription } from '../../lib/mercadopago/client';
+import { emailProvider } from '../../lib/sender/client';
+import { buildWelcomeEmailHtml } from '../../lib/newsletter/emailTemplate';
 
 const PLAN_CONFIG = {
   mensal: { amount: 22.0, envKey: 'MERCADOPAGO_PLAN_ID_MENSAL' },
@@ -103,6 +105,19 @@ export default async function handler(req, res) {
       amount: planConfig.amount,
       currency: 'BRL',
     });
+
+    // 5) E-mail de boas-vindas imediato (loop de hábito — Hooked). Enviado
+    // já aqui, antes da confirmação de pagamento, porque o objetivo é dar o
+    // gatilho de ação (responder o e-mail) o quanto antes — mas o texto do
+    // e-mail deixa claro que a assinatura ainda está "sendo processada", sem
+    // fingir que o pagamento já foi confirmado (isso só acontece no webhook).
+    try {
+      const welcomeHtml = buildWelcomeEmailHtml({ nome });
+      await emailProvider.sendWelcome({ toEmail: email, htmlContent: welcomeHtml });
+    } catch (err) {
+      // Falha no e-mail de boas-vindas não deve derrubar o checkout — só loga.
+      console.error('Falha ao enviar e-mail de boas-vindas:', err.message);
+    }
 
     return res.status(200).json({ init_point: mpSubscription.init_point });
   } catch (err) {
