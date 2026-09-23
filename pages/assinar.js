@@ -93,7 +93,7 @@ export default function AssinarPage() {
                 />
                 <h3>Plano Mensal</h3>
                 <div className="price">
-                  R$ <span>29,90</span>
+                  R$ <span>22,00</span>
                 </div>
                 <div className="per">por mês · cancele quando quiser</div>
                 <ul>
@@ -118,10 +118,10 @@ export default function AssinarPage() {
                 />
                 <h3>Plano Anual</h3>
                 <div className="price">
-                  R$ <span>299</span>
+                  R$ <span>220</span>
                 </div>
                 <div className="per">
-                  por ano · equivale a <span>R$24,90</span>/mês
+                  por ano · equivale a <span>R$18,33</span>/mês
                 </div>
                 <ul>
                   <li>

@@ -115,22 +115,32 @@ O Supabase não deixa criar usuário de Auth só com SQL. Faça assim:
 2. Em **Suas integrações → Criar aplicação**, crie uma aplicação do tipo "Pagamentos online".
 3. Copie o **Access Token** (use o de teste primeiro) → `MERCADOPAGO_ACCESS_TOKEN`.
 4. Crie os dois planos de assinatura (uma vez só) chamando a API — pode usar o `curl` abaixo
-   trocando o token e os valores (rode isso no seu terminal, não no navegador):
+   trocando o token (rode isso no seu terminal, não no navegador):
    ```bash
+   # Plano mensal — R$ 22,00/mês
    curl -X POST 'https://api.mercadopago.com/preapproval_plan' \
      -H 'Authorization: Bearer SEU_ACCESS_TOKEN' \
      -H 'Content-Type: application/json' \
      -d '{
        "reason": "Sem Mimimi — Plano Mensal",
-       "auto_recurring": { "frequency": 1, "frequency_type": "months", "transaction_amount": 29.90, "currency_id": "BRL" },
+       "auto_recurring": { "frequency": 1, "frequency_type": "months", "transaction_amount": 22.00, "currency_id": "BRL" },
+       "back_url": "https://SEUDOMINIO.com.br/minha-conta"
+     }'
+
+   # Plano anual — R$ 220,00/ano (equivalente a R$18,33/mês — 10x o valor mensal)
+   curl -X POST 'https://api.mercadopago.com/preapproval_plan' \
+     -H 'Authorization: Bearer SEU_ACCESS_TOKEN' \
+     -H 'Content-Type: application/json' \
+     -d '{
+       "reason": "Sem Mimimi — Plano Anual",
+       "auto_recurring": { "frequency": 12, "frequency_type": "months", "transaction_amount": 220.00, "currency_id": "BRL" },
        "back_url": "https://SEUDOMINIO.com.br/minha-conta"
      }'
    ```
-   Repita trocando para `"frequency_type": "months", "frequency": 12`... **atenção**: o
-   Mercado Pago não tem `frequency_type: years` — para o plano anual, verifique na
-   documentação atual (`developers.mercadopago.com.br`) a forma correta de representar
-   cobrança anual (pode ser `frequency: 12, frequency_type: "months"`) antes de criar o
-   plano. **CONFIGURAR/VERIFICAR**.
+   **CONFIGURAR/VERIFICAR**: confirme na documentação atual
+   (`developers.mercadopago.com.br`) que `frequency: 12, frequency_type: "months"` é
+   mesmo a forma correta de representar cobrança anual antes de criar o plano — o
+   Mercado Pago não tem um `frequency_type: "years"` direto.
 5. Copie o `id` retornado de cada plano →
    `MERCADOPAGO_PLAN_ID_MENSAL` / `MERCADOPAGO_PLAN_ID_ANUAL`.
 6. Em **Suas integrações → (sua aplicação) → Webhooks**, configure a URL

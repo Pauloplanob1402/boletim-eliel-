@@ -7,8 +7,8 @@ import { createAdminClient } from '../../lib/supabase/adminClient';
 import { createSubscription } from '../../lib/mercadopago/client';
 
 const PLAN_CONFIG = {
-  mensal: { amount: 29.9, envKey: 'MERCADOPAGO_PLAN_ID_MENSAL' },
-  anual: { amount: 299.0, envKey: 'MERCADOPAGO_PLAN_ID_ANUAL' },
+  mensal: { amount: 22.0, envKey: 'MERCADOPAGO_PLAN_ID_MENSAL' },
+  anual: { amount: 220.0, envKey: 'MERCADOPAGO_PLAN_ID_ANUAL' },
 };
 
 export default async function handler(req, res) {
