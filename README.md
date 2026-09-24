@@ -286,3 +286,33 @@ pagamento.
 **Sobre o teste A/B**: a divisão é 50/50 simples (sem significância estatística), e o
 resultado por variante fica em `newsletter_sends.subject_variant` — cruze com
 `newsletter_feedback` manualmente por enquanto (não há dashboard de comparação A/B pronto).
+
+---
+
+## 14. Assinatura de presente
+
+Na tela `/assinar`, a pessoa escolhe "Para mim" ou "🎁 De presente". No modo presente:
+quem preenche nome/e-mail no formulário principal é **quem paga**; os campos extras
+(nome, e-mail, mensagem opcional) são de **quem recebe**. Rode
+`supabase/migration_003_gift_subscriptions.sql` no Supabase antes de usar (já está
+embutido no `schema.sql` também).
+
+Fluxo: pagamento confirmado pelo webhook → a pessoa presenteada é ativada (não quem
+pagou) → ela recebe um e-mail "🎁 Alguém te presenteou" com a mensagem de quem
+presenteou → o link do e-mail leva pra `/minha-conta`, onde ela entra com o próprio
+e-mail (magic link) e escolhe o dia preferido dela. Quem pagou continua sendo dono da
+cobrança e pode cancelar a qualquer momento em `/minha-conta` — lá aparece com a etiqueta
+"🎁 Presente para [nome]" em vez do card normal de assinatura.
+
+Também corrigi a copy do site (home, `/assinar`, e-mail de boas-vindas) que dizia fixo
+"terça e quinta" — hoje reflete que cada assinante escolhe o próprio dia, e esse campo
+agora é editável a qualquer momento em `/minha-conta` (tanto para quem paga a própria
+assinatura quanto para quem recebeu de presente).
+
+## 15. Editor de newsletter — upload de imagem no corpo do texto
+
+O botão "Imagem" do editor (`/admin/newsletters/nova`) agora abre o seletor de arquivo do
+computador e sobe a imagem para o Supabase Storage (bucket `newsletter-media`, mesma
+pasta usada pela imagem de capa), inserindo no cursor automaticamente — antes só aceitava
+colar uma URL. Um botão separado "URL de imagem" ficou disponível para quem já tem a
+imagem hospedada em outro lugar. Também adicionei lista numerada.

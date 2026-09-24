@@ -31,6 +31,8 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
   const router = useRouter();
   const [supabase] = useState(() => createClient());
   const editorRef = useRef(null);
+  const contentImageInputRef = useRef(null);
+  const savedRangeRef = useRef(null);
 
   const [id, setId] = useState(initialNewsletter?.id || null);
   const [title, setTitle] = useState(initialNewsletter?.title || '');
@@ -67,12 +69,30 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
 
   function exec(command, value = null) {
     editorRef.current?.focus();
+    restoreSelection();
     document.execCommand(command, false, value);
+    saveSelection();
   }
 
   function insertHtml(html) {
     editorRef.current?.focus();
+    restoreSelection();
     document.execCommand('insertHTML', false, html);
+    saveSelection();
+  }
+
+  function saveSelection() {
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0 && editorRef.current && editorRef.current.contains(sel.anchorNode)) {
+      savedRangeRef.current = sel.getRangeAt(0).cloneRange();
+    }
+  }
+
+  function restoreSelection() {
+    if (!savedRangeRef.current) return;
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(savedRangeRef.current);
   }
 
   function handleLink() {
@@ -80,9 +100,14 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
     if (url) exec('createLink', url);
   }
 
-  function handleImage() {
+  function handleImageUrl() {
     const url = window.prompt('URL https da imagem:');
     if (url) insertHtml(`<img src="${url}" alt="" style="max-width:100%; display:block; margin:16px 0;" />`);
+  }
+
+  function handleImage() {
+    saveSelection();
+    contentImageInputRef.current?.click();
   }
 
   function handleButton() {
@@ -146,6 +171,21 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
     }
     const { data } = supabase.storage.from('newsletter-media').getPublicUrl(path);
     setHeroImageUrl(data.publicUrl);
+  }
+
+  async function handleContentImageUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = ''; // permite selecionar o mesmo arquivo de novo depois
+    setError('');
+    const path = `content/${Date.now()}-${file.name}`;
+    const { error: uploadError } = await supabase.storage.from('newsletter-media').upload(path, file);
+    if (uploadError) {
+      setError('Falha ao enviar imagem: ' + uploadError.message);
+      return;
+    }
+    const { data } = supabase.storage.from('newsletter-media').getPublicUrl(path);
+    insertHtml(`<img src="${data.publicUrl}" alt="" style="max-width:100%; display:block; margin:16px 0;" />`);
   }
 
   function getContentHtml() {
@@ -380,9 +420,11 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
           <button type="button" onClick={() => exec('formatBlock', 'H3')}>Subtítulo</button>
           <button type="button" onClick={() => exec('formatBlock', 'P')}>Parágrafo</button>
           <button type="button" onClick={() => exec('insertUnorderedList')}>Lista</button>
+          <button type="button" onClick={() => exec('insertOrderedList')}>Lista numerada</button>
           <button type="button" onClick={handleLink}>Link</button>
           <button type="button" onClick={handleButton}>Botão</button>
           <button type="button" onClick={handleImage}>Imagem</button>
+          <button type="button" onClick={handleImageUrl} title="Colar link de uma imagem já hospedada em outro lugar">URL de imagem</button>
           <button type="button" onClick={handleSeparator}>Separador</button>
           <button type="button" onClick={handleQuote}>Citação</button>
           <button type="button" onClick={handleDestaque}>Destaque</button>
@@ -390,7 +432,18 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
           <button type="button" onClick={() => exec('justifyCenter')}>Centro</button>
           <button type="button" onClick={handleYoutube}>▶ YouTube</button>
         </div>
-        <div ref={editorRef} className="editor-canvas" contentEditable suppressContentEditableWarning onInput={updateReadingTime} onBlur={updateReadingTime} />
+        <div style={{ fontSize: '.78rem', color: 'var(--faint)', margin: '6px 0 0' }}>
+          Selecione um texto pra formatar (negrito, itálico, título...) ou clique num botão pra inserir um bloco novo
+          onde o cursor estiver — imagem e vídeo vão pelo upload/link, sem precisar mexer em código.
+        </div>
+        <div ref={editorRef} className="editor-canvas" contentEditable suppressContentEditableWarning onInput={updateReadingTime} onBlur={updateReadingTime} onMouseUp={saveSelection} onKeyUp={saveSelection} />
+        <input
+          type="file"
+          accept="image/*"
+          ref={contentImageInputRef}
+          onChange={handleContentImageUpload}
+          style={{ display: 'none' }}
+        />
         <div className="trust-note" style={{ marginTop: 8 }}>
           Use {'{{nome}}'} em qualquer lugar do texto para personalizar com o nome do assinante (vira &quot;Olá.&quot; se ele não informou nome).
         </div>

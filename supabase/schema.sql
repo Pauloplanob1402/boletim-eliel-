@@ -56,12 +56,21 @@ create table if not exists subscriptions (
   started_at timestamptz,
   next_billing_at timestamptz,
   canceled_at timestamptz,
+  -- Assinatura de presente: quem paga (user_id acima) pode presentear outra
+  -- pessoa. Quando is_gift = true, quem recebe as edições é gift_recipient_email
+  -- (ver pages/api/subscribe.js e o webhook do Mercado Pago), não o pagador.
+  is_gift boolean not null default false,
+  gift_sender_name text,
+  gift_recipient_name text,
+  gift_recipient_email text,
+  gift_message text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 create index if not exists idx_subscriptions_user_id on subscriptions(user_id);
 create index if not exists idx_subscriptions_status on subscriptions(status);
 create index if not exists idx_subscriptions_created_at on subscriptions(created_at);
+create index if not exists idx_subscriptions_is_gift on subscriptions(is_gift);
 drop trigger if exists trg_subscriptions_updated_at on subscriptions;
 create trigger trg_subscriptions_updated_at before update on subscriptions
   for each row execute function set_updated_at();

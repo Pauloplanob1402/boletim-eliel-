@@ -13,18 +13,17 @@ export default async function handler(req, res) {
 
   const admin = createAdminClient();
 
-  // Só assinante com assinatura ativa (ou já paga alguma vez) vê o arquivo
-  // organizado — verificado no servidor, nunca confiando em estado do cliente.
-  const { data: subscription } = await admin
-    .from('subscriptions')
+  // Acesso ao arquivo é por RECEBER a newsletter (newsletter_subscribers
+  // ativo), não por ter uma linha de cobrança própria — isso cobre tanto
+  // quem paga a própria assinatura quanto quem recebeu de presente.
+  const { data: subscriberRow } = await admin
+    .from('newsletter_subscribers')
     .select('status')
     .eq('user_id', auth.user.id)
-    .order('created_at', { ascending: false })
-    .limit(1)
     .maybeSingle();
 
-  if (!subscription || subscription.status !== 'active') {
-    return res.status(403).json({ error: 'Arquivo disponível só para assinantes ativos.' });
+  if (!subscriberRow || subscriberRow.status !== 'active') {
+    return res.status(403).json({ error: 'Arquivo disponível só para quem recebe a newsletter ativamente.' });
   }
 
   const { data: newsletters, error } = await admin

@@ -6,6 +6,7 @@ import { createAdminClient } from '../../../lib/supabase/adminClient';
 import { getPayment, getSubscription, verifyWebhookSignature, calculateRevenueSplit } from '../../../lib/mercadopago/client';
 import { emailProvider } from '../../../lib/sender/client';
 import { REVENUE_SPLIT_TABLE } from '../../../lib/newsletter/revenue';
+import { buildGiftWelcomeEmailHtml } from '../../../lib/newsletter/emailTemplate';
 
 export const config = {
   api: { bodyParser: true },
@@ -101,7 +102,7 @@ async function handleSubscriptionEvent(admin, preapprovalId) {
 
   const { data: localSub } = await admin
     .from('subscriptions')
-    .select('id, user_id')
+    .select('id, user_id, is_gift, gift_sender_name, gift_recipient_name, gift_recipient_email, gift_message')
     .eq('mp_preapproval_id', preapprovalId)
     .maybeSingle();
 
@@ -130,33 +131,66 @@ async function handleSubscriptionEvent(admin, preapprovalId) {
     })
     .eq('id', localSub.id);
 
-  const { data: profile } = await admin.from('profiles').select('email, nome').eq('id', localSub.user_id).single();
+  // Quem RECEBE as edições: o presenteado, se for assinatura de presente;
+  // senão, quem pagou. O e-mail/nome usados daqui pra baixo são sempre os de
+  // quem efetivamente vai receber a newsletter.
+  const isGift = !!localSub.is_gift;
+  const targetEmail = isGift ? localSub.gift_recipient_email : null;
+
+  const { data: payerProfile } = await admin.from('profiles').select('email, nome').eq('id', localSub.user_id).single();
+  const targetProfile = isGift
+    ? (await admin.from('profiles').select('email, nome').eq('email', targetEmail).maybeSingle()).data
+    : payerProfile;
+
+  if (!targetProfile) {
+    console.error('Webhook: perfil do destinatário da newsletter não encontrado.', { isGift, targetEmail });
+    return;
+  }
 
   if (isActive) {
+    // Idempotência do e-mail de presente: só dispara se este era o primeiro
+    // ativamento (senão um webhook duplicado reenviaria o aviso).
+    const { data: currentSubRow } = await admin
+      .from('newsletter_subscribers')
+      .select('status')
+      .eq('email', targetProfile.email)
+      .maybeSingle();
+    const wasAlreadyActive = currentSubRow?.status === 'active';
+
     await admin
       .from('newsletter_subscribers')
       .update({ status: 'active', updated_at: new Date().toISOString() })
-      .eq('user_id', localSub.user_id);
+      .eq('email', targetProfile.email);
 
-    if (profile) {
+    try {
+      await emailProvider.upsertContact({ email: targetProfile.email, nome: targetProfile.nome });
+    } catch (err) {
+      console.error('Falha ao sincronizar assinante com a Sender:', err.message);
+    }
+
+    if (isGift && !wasAlreadyActive) {
       try {
-        await emailProvider.upsertContact({ email: profile.email, nome: profile.nome });
+        const html = buildGiftWelcomeEmailHtml({
+          recipientNome: localSub.gift_recipient_name,
+          gifterNome: localSub.gift_sender_name,
+          gifterMessage: localSub.gift_message,
+          manageUrl: `${process.env.APP_URL}/minha-conta`,
+        });
+        await emailProvider.sendGiftNotice({ toEmail: targetProfile.email, htmlContent: html });
       } catch (err) {
-        console.error('Falha ao sincronizar assinante com a Sender:', err.message);
+        console.error('Falha ao enviar aviso de presente:', err.message);
       }
     }
   } else if (['paused', 'cancelled'].includes(mpSubscription.status)) {
     await admin
       .from('newsletter_subscribers')
       .update({ status: 'inactive', updated_at: new Date().toISOString() })
-      .eq('user_id', localSub.user_id);
+      .eq('email', targetProfile.email);
 
-    if (profile) {
-      try {
-        await emailProvider.removeContact(profile.email);
-      } catch (err) {
-        console.error('Falha ao remover assinante da Sender:', err.message);
-      }
+    try {
+      await emailProvider.removeContact(targetProfile.email);
+    } catch (err) {
+      console.error('Falha ao remover assinante da Sender:', err.message);
     }
   }
 }

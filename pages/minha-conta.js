@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import SiteLayout from '../components/SiteLayout';
 import { createClient } from '../lib/supabase/browserClient';
 
+const DIAS = ['segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado', 'domingo'];
+
 export async function getServerSideProps() {
   // Mesmo motivo do admin/login.js — evita pré-renderização estática no build.
   return { props: {} };
@@ -16,10 +18,15 @@ export default function MinhaContaPage() {
 
   const [profile, setProfile] = useState(null);
   const [subscription, setSubscription] = useState(null);
+  const [subscriberRow, setSubscriberRow] = useState(null);
   const [loadingData, setLoadingData] = useState(false);
   const [cancelError, setCancelError] = useState('');
   const [cancelLoading, setCancelLoading] = useState(false);
   const [cancelled, setCancelled] = useState(false);
+
+  const [dayDraft, setDayDraft] = useState('');
+  const [daySaving, setDaySaving] = useState(false);
+  const [daySaved, setDaySaved] = useState(false);
 
   const [edicoes, setEdicoes] = useState(null);
   const [edicoesError, setEdicoesError] = useState('');
@@ -53,10 +60,23 @@ export default function MinhaContaPage() {
         .limit(1)
         .maybeSingle();
       setSubscription(sub);
+
+      // Linha de "quem recebe a newsletter" — existe tanto para quem paga a
+      // própria assinatura quanto para quem recebeu de presente (nesse caso
+      // não há necessariamente uma linha em `subscriptions` para esta conta).
+      const { data: subRow } = await supabase
+        .from('newsletter_subscribers')
+        .select('id, status, preferred_day, receive_newsletter')
+        .eq('user_id', session.user.id)
+        .maybeSingle();
+      setSubscriberRow(subRow);
+      setDayDraft(subRow?.preferred_day || 'terça');
+
       setLoadingData(false);
 
-      // Seção VIP ("Superfãs"): só busca o arquivo se a assinatura estiver ativa.
-      if (sub?.status === 'active') {
+      // Seção VIP ("Superfãs"): só busca o arquivo se a pessoa recebe a
+      // newsletter ativamente (assinante pagante ou presenteado).
+      if (subRow?.status === 'active') {
         try {
           const {
             data: { session: freshSession },
@@ -102,6 +122,22 @@ export default function MinhaContaPage() {
       setFeedbackError('Erro de conexão ao enviar.');
     }
     setFeedbackSending(false);
+  }
+
+  async function handleSaveDay(e) {
+    e.preventDefault();
+    if (!subscriberRow) return;
+    setDaySaving(true);
+    setDaySaved(false);
+    const { error } = await supabase
+      .from('newsletter_subscribers')
+      .update({ preferred_day: dayDraft })
+      .eq('id', subscriberRow.id);
+    if (!error) {
+      setSubscriberRow((r) => ({ ...r, preferred_day: dayDraft }));
+      setDaySaved(true);
+    }
+    setDaySaving(false);
   }
 
   async function sendMagicLink(e) {
@@ -193,6 +229,11 @@ export default function MinhaContaPage() {
 
               {!loadingData && subscription && (
                 <div style={{ border: '1px solid var(--line)', background: 'var(--bg2)', padding: 24, marginTop: 20 }}>
+                  {subscription.is_gift && (
+                    <div style={{ marginBottom: 16, fontFamily: 'var(--mono)', fontSize: '.72rem', textTransform: 'uppercase', color: 'var(--red)' }}>
+                      🎁 Presente para {subscription.gift_recipient_name}
+                    </div>
+                  )}
                   <div style={{ marginBottom: 14 }}>
                     <span className="label" style={{ fontFamily: 'var(--mono)', fontSize: '.68rem', textTransform: 'uppercase', color: 'var(--faint)' }}>
                       Nome
@@ -205,6 +246,14 @@ export default function MinhaContaPage() {
                     </span>
                     <div>{profile?.email}</div>
                   </div>
+                  {subscription.is_gift && (
+                    <div style={{ marginBottom: 14 }}>
+                      <span style={{ fontFamily: 'var(--mono)', fontSize: '.68rem', textTransform: 'uppercase', color: 'var(--faint)' }}>
+                        Presenteado(a)
+                      </span>
+                      <div>{subscription.gift_recipient_name} — {subscription.gift_recipient_email}</div>
+                    </div>
+                  )}
                   <div style={{ marginBottom: 14 }}>
                     <span style={{ fontFamily: 'var(--mono)', fontSize: '.68rem', textTransform: 'uppercase', color: 'var(--faint)' }}>
                       Plano
@@ -231,21 +280,46 @@ export default function MinhaContaPage() {
                   )}
 
                   {cancelError && <div className="admin-alert error">{cancelError}</div>}
-                  {cancelled && <div className="admin-alert success">Assinatura cancelada. Você continua recebendo até o fim do período já pago.</div>}
+                  {cancelled && <div className="admin-alert success">Assinatura cancelada. {subscription.is_gift ? 'O presente continua ativo até o fim do período já pago.' : 'Você continua recebendo até o fim do período já pago.'}</div>}
 
                   {subscription.status === 'active' && !cancelled && (
                     <button className="admin-btn danger" style={{ marginTop: 10 }} onClick={handleCancel} disabled={cancelLoading}>
-                      {cancelLoading ? 'Cancelando…' : 'Cancelar assinatura'}
+                      {cancelLoading ? 'Cancelando…' : subscription.is_gift ? 'Cancelar presente' : 'Cancelar assinatura'}
                     </button>
                   )}
                 </div>
               )}
 
-              {!loadingData && !subscription && (
+              {!loadingData && !subscription && !subscriberRow && (
                 <p className="lede">Nenhuma assinatura encontrada para esta conta ainda.</p>
               )}
 
-              {!loadingData && subscription?.status === 'active' && (
+              {!loadingData && subscriberRow && (
+                <div style={{ border: '1px solid var(--line)', padding: 24, marginTop: subscription ? 16 : 20 }}>
+                  <span className="eyebrow">Você recebe a newsletter</span>
+                  <h2 style={{ fontSize: '1.05rem', margin: '4px 0 16px' }}>
+                    {subscriberRow.status === 'active' ? 'Ativo — chega no dia que você escolher' : subscriberRow.status}
+                  </h2>
+                  <form onSubmit={handleSaveDay}>
+                    <div className="form-field" style={{ maxWidth: 240 }}>
+                      <label htmlFor="dia-pref">Dia preferido</label>
+                      <select id="dia-pref" value={dayDraft} onChange={(e) => setDayDraft(e.target.value)}>
+                        {DIAS.map((d) => (
+                          <option key={d} value={d}>
+                            {d.charAt(0).toUpperCase() + d.slice(1)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <button type="submit" className="admin-btn secondary" disabled={daySaving}>
+                      {daySaving ? 'Salvando…' : 'Salvar dia'}
+                    </button>
+                    {daySaved && <span style={{ marginLeft: 10, fontSize: '.85rem', color: 'var(--dim)' }}>Salvo ✓</span>}
+                  </form>
+                </div>
+              )}
+
+              {!loadingData && subscriberRow?.status === 'active' && (
                 <div style={{ marginTop: 36 }}>
                   <span className="eyebrow">Área de assinante</span>
                   <h2 style={{ fontSize: '1.3rem', marginBottom: 16 }}>Suas edições</h2>

@@ -29,6 +29,10 @@ export default function AssinarPage({ subscriberCount }) {
     preferredDay: 'terça',
     aceitaTermos: false,
     querNewsletter: true,
+    isGift: false,
+    giftRecipientName: '',
+    giftRecipientEmail: '',
+    giftMessage: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -42,7 +46,11 @@ export default function AssinarPage({ subscriberCount }) {
     setError('');
 
     if (!form.nome.trim() || !form.email.trim()) {
-      setError('Preencha nome e e-mail para continuar.');
+      setError(form.isGift ? 'Preencha seu nome e seu e-mail (quem paga) para continuar.' : 'Preencha nome e e-mail para continuar.');
+      return;
+    }
+    if (form.isGift && (!form.giftRecipientName.trim() || !form.giftRecipientEmail.trim())) {
+      setError('Preencha o nome e o e-mail de quem vai receber o presente.');
       return;
     }
     if (!form.aceitaTermos) {
@@ -114,6 +122,65 @@ export default function AssinarPage({ subscriberCount }) {
       <section className="tight">
         <div className="wrap">
           <form onSubmit={handleSubmit}>
+            <div className="plans" style={{ marginBottom: 20, gridTemplateColumns: '1fr 1fr', maxWidth: 480 }}>
+              <label
+                className="plan-card"
+                style={{ cursor: 'pointer', padding: '18px 20px', borderColor: !form.isGift ? 'var(--red)' : undefined }}
+              >
+                <input type="radio" name="paraQuem" checked={!form.isGift} onChange={() => update('isGift', false)} style={{ display: 'none' }} />
+                <h3 style={{ fontSize: '1rem' }}>Para mim</h3>
+              </label>
+              <label
+                className="plan-card"
+                style={{ cursor: 'pointer', padding: '18px 20px', borderColor: form.isGift ? 'var(--red)' : undefined }}
+              >
+                <input type="radio" name="paraQuem" checked={form.isGift} onChange={() => update('isGift', true)} style={{ display: 'none' }} />
+                <h3 style={{ fontSize: '1rem' }}>🎁 De presente</h3>
+              </label>
+            </div>
+
+            {form.isGift && (
+              <div style={{ maxWidth: 520, marginBottom: 32, border: '1px solid var(--line)', background: 'var(--bg2)', padding: 24 }}>
+                <p className="lede" style={{ fontSize: '.95rem', marginBottom: 18 }}>
+                  Cliente, amigo, esposa, marido, sócio — se você sabe que essa pessoa curte o que o Pavinatto
+                  aborda e como ele aborda, é só preencher abaixo. Quem paga é você (nos campos mais abaixo); quem
+                  recebe as edições é quem você indicar aqui.
+                </p>
+                <div className="form-row">
+                  <div className="form-field">
+                    <label htmlFor="gift-nome">Nome de quem vai receber</label>
+                    <input
+                      id="gift-nome"
+                      type="text"
+                      value={form.giftRecipientName}
+                      onChange={(e) => update('giftRecipientName', e.target.value)}
+                      placeholder="Nome do presenteado"
+                    />
+                  </div>
+                  <div className="form-field">
+                    <label htmlFor="gift-email">E-mail de quem vai receber</label>
+                    <input
+                      id="gift-email"
+                      type="email"
+                      value={form.giftRecipientEmail}
+                      onChange={(e) => update('giftRecipientEmail', e.target.value)}
+                      placeholder="email-do-presenteado@..."
+                    />
+                  </div>
+                </div>
+                <div className="form-field" style={{ marginBottom: 0 }}>
+                  <label htmlFor="gift-msg">Uma mensagem (opcional)</label>
+                  <textarea
+                    id="gift-msg"
+                    rows={2}
+                    value={form.giftMessage}
+                    onChange={(e) => update('giftMessage', e.target.value)}
+                    placeholder="Vai junto no e-mail de aviso do presente"
+                  />
+                </div>
+              </div>
+            )}
+
             <div className="plans" style={{ marginBottom: 36 }}>
               <label className="plan-card" style={{ cursor: 'pointer', borderColor: form.plano === 'mensal' ? 'var(--red)' : undefined }}>
                 <input
@@ -130,7 +197,7 @@ export default function AssinarPage({ subscriberCount }) {
                 </div>
                 <div className="per">por mês · cancele quando quiser</div>
                 <ul>
-                  <li>Duas edições por semana (terça e quinta)</li>
+                  <li>Duas edições por semana, no dia que você escolher</li>
                   <li>Acesso ao arquivo de edições anteriores</li>
                   <li>Sem anúncio, sem patrocínio disfarçado de matéria</li>
                 </ul>
@@ -170,9 +237,14 @@ export default function AssinarPage({ subscriberCount }) {
             </div>
 
             <div style={{ maxWidth: 520 }}>
+              {form.isGift && (
+                <div className="trust-note" style={{ marginBottom: 14 }}>
+                  Agora os seus dados — quem está pagando o presente e vai receber o recibo.
+                </div>
+              )}
               <div className="form-row">
                 <div className="form-field">
-                  <label htmlFor="nome">Nome</label>
+                  <label htmlFor="nome">{form.isGift ? 'Seu nome' : 'Nome'}</label>
                   <input
                     id="nome"
                     type="text"
@@ -183,7 +255,7 @@ export default function AssinarPage({ subscriberCount }) {
                   />
                 </div>
                 <div className="form-field">
-                  <label htmlFor="email">E-mail</label>
+                  <label htmlFor="email">{form.isGift ? 'Seu e-mail' : 'E-mail'}</label>
                   <input
                     id="email"
                     type="email"
@@ -195,6 +267,7 @@ export default function AssinarPage({ subscriberCount }) {
                 </div>
               </div>
 
+              {!form.isGift && (
               <div className="form-field">
                 <label htmlFor="dia">Quando você quer receber sua newsletter?</label>
                 <select id="dia" value={form.preferredDay} onChange={(e) => update('preferredDay', e.target.value)}>
@@ -205,7 +278,9 @@ export default function AssinarPage({ subscriberCount }) {
                   ))}
                 </select>
               </div>
+              )}
 
+              {!form.isGift && (
               <div className="checkbox-row">
                 <input
                   type="checkbox"
@@ -217,6 +292,7 @@ export default function AssinarPage({ subscriberCount }) {
                   Quero receber a newsletter por e-mail.
                 </label>
               </div>
+              )}
 
               <div className="checkbox-row">
                 <input
@@ -242,7 +318,11 @@ export default function AssinarPage({ subscriberCount }) {
               {error && <div className="admin-alert error">{error}</div>}
 
               <button type="submit" className="btn block" disabled={loading}>
-                {loading ? 'Preparando checkout…' : `Ir para o pagamento — Plano ${form.plano === 'anual' ? 'Anual' : 'Mensal'}`}
+                {loading
+                  ? 'Preparando checkout…'
+                  : form.isGift
+                  ? `Presentear — Plano ${form.plano === 'anual' ? 'Anual' : 'Mensal'}`
+                  : `Ir para o pagamento — Plano ${form.plano === 'anual' ? 'Anual' : 'Mensal'}`}
               </button>
               <div className="trust-note" style={{ marginTop: 14 }}>
                 Você será redirecionado ao Mercado Pago para concluir o pagamento com segurança.
@@ -279,8 +359,8 @@ export default function AssinarPage({ subscriberCount }) {
             <div className="faq-item">
               <dt>&quot;Vou receber spam ou e-mail todo dia?&quot;</dt>
               <dd>
-                Só terça e quinta. Duas vezes por semana, sempre. Nada de &quot;edição bônus&quot;
-                toda hora lotando sua caixa de entrada.
+                Só duas vezes por semana, sempre no dia que você escolher no cadastro. Nada de
+                &quot;edição bônus&quot; toda hora lotando sua caixa de entrada.
               </dd>
             </div>
             <div className="faq-item">

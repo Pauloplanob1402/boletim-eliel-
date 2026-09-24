@@ -49,7 +49,7 @@ export default function EdicaoPublicaPage({ newsletter }) {
 
           <div style={{ borderTop: '1px solid var(--line)', marginTop: 40, paddingTop: 28, textAlign: 'center' }}>
             <p className="lede" style={{ marginBottom: 16 }}>
-              Essa edição chegou pronta na caixa de quem assina — terça e quinta, sem esperar alguém compartilhar.
+              Essa edição chegou pronta na caixa de quem assina — no dia certo, sem esperar alguém compartilhar.
             </p>
             <a href="/assinar" className="btn">
               Quero assinar
