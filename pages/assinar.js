@@ -198,7 +198,7 @@ export default function AssinarPage({ subscriberCount }) {
                 <div className="per">por mês · cancele quando quiser</div>
                 <ul>
                   <li>Duas edições por semana, no dia que você escolher</li>
-                  <li>Acesso ao arquivo de edições anteriores</li>
+                  <li>Nunca mais perca uma edição — o arquivo inteiro fica disponível quando você quiser reler</li>
                   <li>Sem anúncio, sem patrocínio disfarçado de matéria</li>
                 </ul>
                 <span className={`btn ${form.plano === 'mensal' ? '' : 'ghost'} block`}>

@@ -52,7 +52,7 @@ export default function EdicaoPublicaPage({ newsletter }) {
               Essa edição chegou pronta na caixa de quem assina — no dia certo, sem esperar alguém compartilhar.
             </p>
             <a href="/assinar" className="btn">
-              Quero assinar
+              Quero ser assinante
             </a>
           </div>
         </article>
