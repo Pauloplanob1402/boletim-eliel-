@@ -316,3 +316,77 @@ computador e sobe a imagem para o Supabase Storage (bucket `newsletter-media`, m
 pasta usada pela imagem de capa), inserindo no cursor automaticamente — antes só aceitava
 colar uma URL. Um botão separado "URL de imagem" ficou disponível para quem já tem a
 imagem hospedada em outro lugar. Também adicionei lista numerada.
+
+## 16. Favicon e SEO (itens 14 e 15 da checklist de lançamento)
+
+Adicionado nesta rodada:
+
+- **Favicon próprio**: `public/favicon.ico`, `favicon.svg`, `apple-touch-icon.png`,
+  `icon-192.png`, `icon-512.png` — gerados a partir das cores da marca (fundo `--ink`,
+  letras `SM` em `--red`). Ligados em `pages/_document.js`. Se quiser um logo de verdade
+  em vez de "SM", troque esses arquivos por outros do mesmo tamanho (mesmos nomes) e não
+  precisa mexer em código.
+- **`og-image.png`** (1200×630): aparece como preview quando alguém compartilha um link
+  do site no WhatsApp/X/LinkedIn — inclui o link de "Compartilhar" que vai em cada
+  e-mail (`lib/newsletter/emailTemplate.js` → `/edicoes/[id]`). Mesma observação: pode
+  trocar por uma arte própria, mesmo nome de arquivo.
+- **`/sitemap.xml`** e **`/robots.txt`**: agora existem como rotas dinâmicas
+  (`pages/sitemap.xml.js`, `pages/robots.txt.js`), não arquivos estáticos — assim eles se
+  ajustam sozinhos quando você configurar `NEXT_PUBLIC_APP_URL`. O `robots.txt` bloqueia
+  `/admin`, `/api` e `/minha-conta` de buscadores. Depois do domínio final no ar, cadastre
+  `https://SEUDOMINIO.com.br/sitemap.xml` no Google Search Console.
+- **Nova env var `NEXT_PUBLIC_APP_URL`**: igual à `APP_URL`, mas exposta ao navegador —
+  usada só para montar `<link rel="canonical">`, as tags Open Graph/Twitter e o sitemap.
+  Cadastre as duas (`APP_URL` e `NEXT_PUBLIC_APP_URL`) com o mesmo valor na Vercel.
+- **Meta tags completas** em todas as páginas públicas via `components/SiteLayout.js`:
+  canonical, Open Graph (title/description/image/url), Twitter Card. Páginas privadas
+  (`/admin/*` e `/minha-conta`) ganharam `<meta name="robots" content="noindex, nofollow">`
+  para nunca aparecer no Google.
+
+**O que ainda depende de você (não dá pra automatizar):**
+- Item 16 (depoimentos reais em `/assinar`) — precisa de comentários de leitores de
+  verdade; me manda 3-4 prontos que eu insiro na página.
+- Cadastrar o sitemap no Google Search Console depois que o domínio final estiver no ar.
+- Se quiser um favicon/logo desenhado (não só as letras "SM"), me diga o estilo e eu
+  gero outra versão.
+
+## 17. Repasse do split 60/20/20 com Pix pré-calculado
+
+Resolve a parte manual do item 9: o Mercado Pago **não** faz split automático em
+assinatura recorrente (o `preapproval` descarta qualquer campo de comissão — só
+Checkout Pro/Transparente/Bricks aceitam split, e mesmo assim exigem OAuth por conta
+recebedora). Então continua sendo repasse manual — mas agora `/admin/receitas` deixa
+isso rápido em vez de fazer conta na mão.
+
+**Antes de usar, rode `supabase/migration_004_revenue_payouts.sql`** no SQL Editor do
+Supabase (schema.sql já foi atualizado também, mas se seu banco já existe, use a
+migração — ela é segura rodar mais de uma vez).
+
+Como funciona:
+
+1. Em `/admin/receitas`, cada um dos três nomes (Tiago Pavinatto, Eliel Duarte, Paulo
+   Nascimento) aparece com um card mostrando o valor pendente de repasse.
+2. Na primeira vez, configure a chave Pix de cada um (escolha o tipo — CPF, CNPJ,
+   e-mail, telefone ou chave aleatória — e digite a chave; ela é normalizada
+   automaticamente pro formato exato que o Pix exige, ex.: telefone vira `+55DDDNUMERO`
+   sem espaço). Se um dos três já é o dono da própria conta do Mercado Pago que recebe
+   a assinatura, marque "É a conta da plataforma" em vez de cadastrar Pix — não faz
+   sentido ele pagar Pix pra si mesmo.
+3. Todo mês, clique em **Copiar Pix Copia e Cola** — copia um código Pix pronto (com
+   o valor pendente já calculado) pra colar direto no app do banco. Depois de pagar de
+   verdade, clique em **Marcar como repassado**.
+4. O histórico embaixo mostra o status (Pendente/Repassado) de cada alocação.
+
+**Sobre o código Pix gerado** (`lib/newsletter/pix.js`): é um Pix **estático** — só
+texto, sem gateway, sem taxa, sem credencial nenhuma (é o mesmo padrão que o app do
+seu banco usa quando você pede "copiar código Pix" pra receber). Implementado do zero
+seguindo o Manual do BR Code / Manual de Padrões para Iniciação do Pix (Banco
+Central), com CRC16 conferido contra o vetor de teste oficial (`123456789` → `29B1`).
+**Importante**: Pix estático não tem confirmação automática de pagamento — por isso o
+botão "Marcar como repassado" é uma confirmação manual, não uma verificação real. Teste
+com um valor pequeno primeiro (ou peça pra cada um confirmar que recebeu) antes de
+confiar 100% no fluxo.
+
+Arquivos novos: `lib/newsletter/pix.js` (gerador + normalização de chave Pix),
+`pages/api/admin/revenue-recipient.js` (salvar chave Pix), `pages/api/admin/revenue-payout.js`
+(marcar como repassado), `supabase/migration_004_revenue_payouts.sql`.

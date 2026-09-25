@@ -183,7 +183,7 @@ export default function MinhaContaPage() {
   }
 
   return (
-    <SiteLayout title="Minha Conta — Sem Mimimi" description="Gerencie sua assinatura da newsletter Sem Mimimi.">
+    <SiteLayout title="Minha Conta — Sem Mimimi" description="Gerencie sua assinatura da newsletter Sem Mimimi." noindex>
       <section className="tight">
         <div className="wrap" style={{ maxWidth: 520 }}>
           <span className="eyebrow">Minha conta</span>

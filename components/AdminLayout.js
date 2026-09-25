@@ -26,6 +26,8 @@ export default function AdminLayout({ title, adminUser, children }) {
     <div className="admin-shell">
       <Head>
         <title>{title ? `${title} — Admin Sem Mimimi` : 'Admin Sem Mimimi'}</title>
+        {/* Painel admin nunca deve aparecer no Google. */}
+        <meta name="robots" content="noindex, nofollow" />
       </Head>
 
       <aside className="admin-sidebar">

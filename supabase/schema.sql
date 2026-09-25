@@ -178,9 +178,35 @@ create table if not exists revenue_allocations (
   recipient_name text not null,
   percentage numeric(5,2) not null,
   amount numeric(10,2) not null,
+  -- Controle de repasse manual (ver migration_004 e pages/admin/receitas.js):
+  -- esta tabela continua sendo só contábil, mas agora registra se o valor já
+  -- foi de fato transferido pro beneficiário (via Pix, marcado à mão pelo admin).
+  payout_status text not null default 'pending' check (payout_status in ('pending', 'paid')),
+  paid_at timestamptz,
+  paid_by uuid references profiles(id),
   created_at timestamptz not null default now()
 );
 create index if not exists idx_revenue_allocations_payment_id on revenue_allocations(payment_id);
+create index if not exists idx_revenue_allocations_payout_status on revenue_allocations(payout_status);
+
+-- ------------------------------------------------------------
+-- revenue_recipients: chave Pix de cada beneficiário do split, configurada
+-- pelo admin na própria tela de /admin/receitas.
+-- ------------------------------------------------------------
+create table if not exists revenue_recipients (
+  id uuid primary key default gen_random_uuid(),
+  recipient_name text not null unique,
+  pix_key text,
+  pix_key_type text check (pix_key_type in ('cpf', 'cnpj', 'email', 'telefone', 'aleatoria')),
+  pix_city text not null default 'BRASILIA',
+  is_platform_account boolean not null default false,
+  updated_at timestamptz not null default now()
+);
+insert into revenue_recipients (recipient_name)
+values ('Tiago Pavinatto'), ('Eliel Duarte'), ('Paulo Nascimento')
+on conflict (recipient_name) do nothing;
+create trigger trg_revenue_recipients_updated_at before update on revenue_recipients
+  for each row execute function set_updated_at();
 
 -- ------------------------------------------------------------
 -- newsletter_feedback: enquete rápida no fim de cada edição
@@ -212,10 +238,14 @@ create index if not exists idx_subscriber_messages_created_at on subscriber_mess
 
 -- Regra de divisão fixa (60/20/20) — ver lib/mercadopago/client.js -> calculateRevenueSplit()
 -- e pages/api/mercadopago/webhook.js, que já inserem essas linhas a cada
--- pagamento aprovado. Esta tabela é só contábil: NÃO faz nenhuma transferência
--- automática de dinheiro para Eliel Duarte ou Paulo Nascimento — isso exigiria
--- integração explícita com o split payment / marketplace do Mercado Pago e a
--- configuração de contas recebedoras, que não foi pedida neste escopo.
+-- pagamento aprovado. O Mercado Pago NÃO transfere dinheiro automaticamente
+-- para Eliel Duarte ou Paulo Nascimento (o preapproval/assinatura não aceita
+-- nenhum campo de comissão/split — só os checkouts avulsos Pro/Transparente/
+-- Bricks aceitam, e mesmo assim exigem OAuth com cada conta recebedora). O
+-- repasse continua sendo um Pix manual todo mês — /admin/receitas só deixa
+-- isso rápido: mostra o valor pendente por pessoa e gera o código Pix Copia e
+-- Cola pronto (ver lib/newsletter/pix.js), o admin ainda é quem confirma o
+-- pagamento e clica em "marcar como repassado".
 
 -- ============================================================
 -- ROW LEVEL SECURITY
@@ -227,6 +257,7 @@ alter table newsletter_subscribers enable row level security;
 alter table newsletters enable row level security;
 alter table newsletter_sends enable row level security;
 alter table revenue_allocations enable row level security;
+alter table revenue_recipients enable row level security;
 alter table newsletter_feedback enable row level security;
 alter table subscriber_messages enable row level security;
 
@@ -271,6 +302,10 @@ create policy "newsletter_sends_admin_only" on newsletter_sends
 
 -- revenue_allocations: só admin.
 create policy "revenue_allocations_admin_only" on revenue_allocations
+  for all using (is_admin()) with check (is_admin());
+
+-- revenue_recipients: só admin (chave Pix é dado sensível).
+create policy "revenue_recipients_admin_only" on revenue_recipients
   for all using (is_admin()) with check (is_admin());
 
 -- newsletter_feedback: admin vê tudo; a inserção do voto é feita pelo backend
