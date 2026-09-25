@@ -317,9 +317,9 @@ pasta usada pela imagem de capa), inserindo no cursor automaticamente — antes 
 colar uma URL. Um botão separado "URL de imagem" ficou disponível para quem já tem a
 imagem hospedada em outro lugar. Também adicionei lista numerada.
 
-## 16. Favicon e SEO (itens 14 e 15 da checklist de lançamento)
+---
 
-Adicionado nesta rodada:
+## 16. Favicon e SEO (itens 14 e 15 da checklist de lançamento)
 
 - **Favicon próprio**: `public/favicon.ico`, `favicon.svg`, `apple-touch-icon.png`,
   `icon-192.png`, `icon-512.png` — gerados a partir das cores da marca (fundo `--ink`,
@@ -333,19 +333,27 @@ Adicionado nesta rodada:
 - **`/sitemap.xml`** e **`/robots.txt`**: agora existem como rotas dinâmicas
   (`pages/sitemap.xml.js`, `pages/robots.txt.js`), não arquivos estáticos — assim eles se
   ajustam sozinhos quando você configurar `NEXT_PUBLIC_APP_URL`. O `robots.txt` bloqueia
-  `/admin`, `/api` e `/minha-conta` de buscadores. Depois do domínio final no ar, cadastre
+  `/admin`, `/api` e `/minha-conta` de buscadores. O sitemap só lista as páginas públicas
+  permanentes (home, assinar, edição de lançamento, páginas legais) — de propósito, edições
+  pagas individuais (`/edicoes/[id]`) não entram no sitemap (não faz sentido ativamente
+  convidar o Google a indexar conteúdo pago, mesmo que o link continue funcionando pra
+  quem recebe por compartilhamento). Depois do domínio final no ar, cadastre
   `https://SEUDOMINIO.com.br/sitemap.xml` no Google Search Console.
 - **Nova env var `NEXT_PUBLIC_APP_URL`**: igual à `APP_URL`, mas exposta ao navegador —
   usada só para montar `<link rel="canonical">`, as tags Open Graph/Twitter e o sitemap.
   Cadastre as duas (`APP_URL` e `NEXT_PUBLIC_APP_URL`) com o mesmo valor na Vercel.
 - **Meta tags completas** em todas as páginas públicas via `components/SiteLayout.js`:
   canonical, Open Graph (title/description/image/url), Twitter Card. Páginas privadas
-  (`/admin/*` e `/minha-conta`) ganharam `<meta name="robots" content="noindex, nofollow">`
-  para nunca aparecer no Google.
+  (`/admin/*`, `/admin/login` e `/minha-conta`) ganharam
+  `<meta name="robots" content="noindex, nofollow">` para nunca aparecer no Google.
+- A edição de lançamento (`/edicao-exemplo`) segue sendo a que substituiu a "#47" — texto
+  explicando por que a newsletter passou a ser paga, sem depender de um evento específico
+  do noticiário. **Ainda é um rascunho meu — revise com o Tiago antes de considerar
+  definitivo**, já que sai assinado por ele.
 
 **O que ainda depende de você (não dá pra automatizar):**
-- Item 16 (depoimentos reais em `/assinar`) — precisa de comentários de leitores de
-  verdade; me manda 3-4 prontos que eu insiro na página.
+- Depoimentos reais em `/assinar` — precisa de comentários de leitores de verdade; me
+  manda 3-4 prontos que eu insiro na página.
 - Cadastrar o sitemap no Google Search Console depois que o domínio final estiver no ar.
 - Se quiser um favicon/logo desenhado (não só as letras "SM"), me diga o estilo e eu
   gero outra versão.
@@ -390,3 +398,16 @@ confiar 100% no fluxo.
 Arquivos novos: `lib/newsletter/pix.js` (gerador + normalização de chave Pix),
 `pages/api/admin/revenue-recipient.js` (salvar chave Pix), `pages/api/admin/revenue-payout.js`
 (marcar como repassado), `supabase/migration_004_revenue_payouts.sql`.
+
+## 18. O que continua só com vocês (eu não tenho acesso às suas contas)
+
+Da checklist de pré-lançamento, os itens que só vocês conseguem fechar, porque dependem de login nas contas de vocês (Mercado Pago, Sender, Vercel, Supabase):
+
+- Trocar o Access Token do Mercado Pago pra produção e recriar os planos com o valor final.
+- Configurar o webhook em produção e pegar a chave secreta de verdade.
+- Testar o merge tag `{$nome}`/`{$email}` numa campanha real da Sender.
+- Confirmar limite de contatos/envios do plano da Sender.
+- Cadastrar as env vars de produção na Vercel (incluindo a nova `NEXT_PUBLIC_APP_URL`).
+- Configurar a chave Pix de cada beneficiário em `/admin/receitas` (o repasse em si
+  ainda é um clique manual seu todo mês, só ficou rápido — não é automático).
+- Teste ponta a ponta com pagamento de teste (assinar → confirmar → newsletter chegar → cancelar).

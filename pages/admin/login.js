@@ -38,6 +38,7 @@ export default function AdminLoginPage() {
     <>
       <Head>
         <title>Login — Admin Sem Mimimi</title>
+        <meta name="robots" content="noindex, nofollow" />
       </Head>
       <div className="login-box">
         <div className="brand" style={{ marginBottom: 24, fontFamily: 'var(--display)', textTransform: 'uppercase' }}>
