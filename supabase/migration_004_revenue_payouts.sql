@@ -3,6 +3,28 @@
 -- Rode isto no SQL Editor do Supabase DEPOIS das migrações 001/002/003.
 -- ============================================================
 
+-- Isso não deveria ser necessário (revenue_allocations é criada no schema.sql
+-- original), mas o erro "relation does not exist" mostra que ela não chegou a
+-- ser criada no seu banco — então criamos aqui também, de forma segura
+-- (create if not exists: se ela já existir, esta parte não faz nada).
+-- Requer que "payments" e "profiles" já existam (login do admin funcionando
+-- confirma que profiles existe; se "payments" também não existir, o erro
+-- abaixo vai mudar de "revenue_allocations" para "payments" — me avisa).
+create table if not exists revenue_allocations (
+  id uuid primary key default gen_random_uuid(),
+  payment_id uuid references payments(id) on delete cascade,
+  recipient_name text not null,
+  percentage numeric(5,2) not null,
+  amount numeric(10,2) not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_revenue_allocations_payment_id on revenue_allocations(payment_id);
+
+alter table revenue_allocations enable row level security;
+drop policy if exists "revenue_allocations_admin_only" on revenue_allocations;
+create policy "revenue_allocations_admin_only" on revenue_allocations
+  for all using (is_admin()) with check (is_admin());
+
 -- revenue_allocations já existe (schema.sql) e é só contábil — cada linha
 -- registra quanto CADA UM deveria receber a cada pagamento aprovado. Esta
 -- migração adiciona o controle de "isso já foi repassado de verdade ou
@@ -34,6 +56,7 @@ create table if not exists revenue_recipients (
   updated_at timestamptz not null default now()
 );
 
+drop trigger if exists trg_revenue_recipients_updated_at on revenue_recipients;
 create trigger trg_revenue_recipients_updated_at before update on revenue_recipients
   for each row execute function set_updated_at();
 
@@ -45,5 +68,6 @@ on conflict (recipient_name) do nothing;
 
 alter table revenue_recipients enable row level security;
 
+drop policy if exists "revenue_recipients_admin_only" on revenue_recipients;
 create policy "revenue_recipients_admin_only" on revenue_recipients
   for all using (is_admin()) with check (is_admin());
