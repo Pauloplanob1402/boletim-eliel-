@@ -15,8 +15,8 @@ import { emailProvider } from '../../lib/sender/client';
 import { buildWelcomeEmailHtml } from '../../lib/newsletter/emailTemplate';
 
 const PLAN_CONFIG = {
-  mensal: { amount: 22.0, envKey: 'MERCADOPAGO_PLAN_ID_MENSAL' },
-  anual: { amount: 220.0, envKey: 'MERCADOPAGO_PLAN_ID_ANUAL' },
+  mensal: { amount: 22.0, frequency: 1, frequencyType: 'months', reason: 'Sem Mimimi — Plano Mensal' },
+  anual: { amount: 220.0, frequency: 12, frequencyType: 'months', reason: 'Sem Mimimi — Plano Anual' },
 };
 
 async function findOrCreateProfile(admin, { email, nome, querNewsletter, nowIso }) {
@@ -93,13 +93,6 @@ export default async function handler(req, res) {
   const planConfig = PLAN_CONFIG[plano];
   if (!planConfig) return res.status(400).json({ error: 'Plano inválido.' });
 
-  const planId = process.env[planConfig.envKey];
-  if (!planId) {
-    return res.status(500).json({
-      error: `Plano do Mercado Pago não configurado (${planConfig.envKey} ausente). Veja o README.`,
-    });
-  }
-
   const admin = createAdminClient();
   const nowIso = new Date().toISOString();
 
@@ -140,7 +133,10 @@ export default async function handler(req, res) {
 
     // 3) Cria a assinatura no Mercado Pago — sempre cobrada de quem paga.
     const mpSubscription = await createSubscription({
-      planId,
+      reason: planConfig.reason,
+      frequency: planConfig.frequency,
+      frequencyType: planConfig.frequencyType,
+      amount: planConfig.amount,
       payerEmail: email,
       externalReference: payerUserId,
     });

@@ -8,7 +8,10 @@ import { requireUserApi } from '../../../lib/supabase/requireAdminApi';
 import { createAdminClient } from '../../../lib/supabase/adminClient';
 import { createSubscription } from '../../../lib/mercadopago/client';
 
-const PLAN_ENV_KEY = { mensal: 'MERCADOPAGO_PLAN_ID_MENSAL', anual: 'MERCADOPAGO_PLAN_ID_ANUAL' };
+const PLAN_CONFIG = {
+  mensal: { amount: 22.0, frequency: 1, frequencyType: 'months', reason: 'Sem Mimimi — Plano Mensal' },
+  anual: { amount: 220.0, frequency: 12, frequencyType: 'months', reason: 'Sem Mimimi — Plano Anual' },
+};
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Método não permitido.' });
@@ -17,11 +20,8 @@ export default async function handler(req, res) {
   if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
 
   const { plano } = req.body || {};
-  const envKey = PLAN_ENV_KEY[plano];
-  if (!envKey) return res.status(400).json({ error: 'Plano inválido.' });
-
-  const planId = process.env[envKey];
-  if (!planId) return res.status(500).json({ error: `${envKey} não configurado.` });
+  const planConfig = PLAN_CONFIG[plano];
+  if (!planConfig) return res.status(400).json({ error: 'Plano inválido.' });
 
   const admin = createAdminClient();
   const { data: profile } = await admin.from('profiles').select('email').eq('id', auth.user.id).single();
@@ -29,7 +29,10 @@ export default async function handler(req, res) {
 
   try {
     const mpSubscription = await createSubscription({
-      planId,
+      reason: planConfig.reason,
+      frequency: planConfig.frequency,
+      frequencyType: planConfig.frequencyType,
+      amount: planConfig.amount,
       payerEmail: profile.email,
       externalReference: auth.user.id,
     });
