@@ -42,7 +42,7 @@ export default function AdminLoginPage() {
       </Head>
       <div className="login-box">
         <div className="brand" style={{ marginBottom: 24, fontFamily: 'var(--display)', textTransform: 'uppercase' }}>
-          SEM <span style={{ color: 'var(--red)' }}>MIMIMI</span>
+          SEM <span style={{ color: 'var(--red-dark)' }}>MIMIMI</span>
         </div>
         <h1 style={{ fontSize: '1.3rem', marginBottom: 20 }}>Painel administrativo</h1>
         <form onSubmit={handleSubmit}>

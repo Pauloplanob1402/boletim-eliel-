@@ -78,7 +78,7 @@ export default function AdminDashboard({ adminUser, range, stats }) {
             key={key}
             href={`/admin?range=${key}`}
             className="admin-btn secondary"
-            style={{ borderColor: range === key ? 'var(--red)' : undefined, color: range === key ? 'var(--red)' : undefined }}
+            style={{ borderColor: range === key ? 'var(--red-dark)' : undefined, color: range === key ? 'var(--red-dark)' : undefined }}
           >
             {label}
           </a>

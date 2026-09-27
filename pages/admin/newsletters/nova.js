@@ -432,7 +432,7 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
           <button type="button" onClick={() => exec('justifyCenter')}>Centro</button>
           <button type="button" onClick={handleYoutube}>▶ YouTube</button>
         </div>
-        <div style={{ fontSize: '.78rem', color: 'var(--faint)', margin: '6px 0 0' }}>
+        <div style={{ fontSize: '.78rem', color: 'var(--dim)', margin: '6px 0 0' }}>
           Selecione um texto pra formatar (negrito, itálico, título...) ou clique num botão pra inserir um bloco novo
           onde o cursor estiver — imagem e vídeo vão pelo upload/link, sem precisar mexer em código.
         </div>

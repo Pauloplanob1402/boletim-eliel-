@@ -32,7 +32,7 @@ export default function AdminLayout({ title, adminUser, children }) {
 
       <aside className="admin-sidebar">
         <div className="brand">
-          SEM <span style={{ color: 'var(--red)' }}>MIMIMI</span>
+          SEM <span style={{ color: 'var(--red-dark)' }}>MIMIMI</span>
         </div>
         <nav>
           {MENU.map((item) => (

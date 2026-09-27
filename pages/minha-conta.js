@@ -230,38 +230,38 @@ export default function MinhaContaPage() {
               {!loadingData && subscription && (
                 <div style={{ border: '1px solid var(--line)', background: 'var(--bg2)', padding: 24, marginTop: 20 }}>
                   {subscription.is_gift && (
-                    <div style={{ marginBottom: 16, fontFamily: 'var(--mono)', fontSize: '.72rem', textTransform: 'uppercase', color: 'var(--red)' }}>
+                    <div style={{ marginBottom: 16, fontFamily: 'var(--mono)', fontSize: '.72rem', textTransform: 'uppercase', color: 'var(--red-dark)' }}>
                       🎁 Presente para {subscription.gift_recipient_name}
                     </div>
                   )}
                   <div style={{ marginBottom: 14 }}>
-                    <span className="label" style={{ fontFamily: 'var(--mono)', fontSize: '.68rem', textTransform: 'uppercase', color: 'var(--faint)' }}>
+                    <span className="label" style={{ fontFamily: 'var(--mono)', fontSize: '.68rem', textTransform: 'uppercase', color: 'var(--dim)' }}>
                       Nome
                     </span>
                     <div>{profile?.nome || '—'}</div>
                   </div>
                   <div style={{ marginBottom: 14 }}>
-                    <span style={{ fontFamily: 'var(--mono)', fontSize: '.68rem', textTransform: 'uppercase', color: 'var(--faint)' }}>
+                    <span style={{ fontFamily: 'var(--mono)', fontSize: '.68rem', textTransform: 'uppercase', color: 'var(--dim)' }}>
                       E-mail
                     </span>
                     <div>{profile?.email}</div>
                   </div>
                   {subscription.is_gift && (
                     <div style={{ marginBottom: 14 }}>
-                      <span style={{ fontFamily: 'var(--mono)', fontSize: '.68rem', textTransform: 'uppercase', color: 'var(--faint)' }}>
+                      <span style={{ fontFamily: 'var(--mono)', fontSize: '.68rem', textTransform: 'uppercase', color: 'var(--dim)' }}>
                         Presenteado(a)
                       </span>
                       <div>{subscription.gift_recipient_name} — {subscription.gift_recipient_email}</div>
                     </div>
                   )}
                   <div style={{ marginBottom: 14 }}>
-                    <span style={{ fontFamily: 'var(--mono)', fontSize: '.68rem', textTransform: 'uppercase', color: 'var(--faint)' }}>
+                    <span style={{ fontFamily: 'var(--mono)', fontSize: '.68rem', textTransform: 'uppercase', color: 'var(--dim)' }}>
                       Plano
                     </span>
                     <div>{subscription.plan_id === 'anual' ? 'Anual' : 'Mensal'}</div>
                   </div>
                   <div style={{ marginBottom: 14 }}>
-                    <span style={{ fontFamily: 'var(--mono)', fontSize: '.68rem', textTransform: 'uppercase', color: 'var(--faint)' }}>
+                    <span style={{ fontFamily: 'var(--mono)', fontSize: '.68rem', textTransform: 'uppercase', color: 'var(--dim)' }}>
                       Status
                     </span>
                     <div>
@@ -272,7 +272,7 @@ export default function MinhaContaPage() {
                   </div>
                   {subscription.next_billing_at && (
                     <div style={{ marginBottom: 14 }}>
-                      <span style={{ fontFamily: 'var(--mono)', fontSize: '.68rem', textTransform: 'uppercase', color: 'var(--faint)' }}>
+                      <span style={{ fontFamily: 'var(--mono)', fontSize: '.68rem', textTransform: 'uppercase', color: 'var(--dim)' }}>
                         Próxima cobrança
                       </span>
                       <div>{new Date(subscription.next_billing_at).toLocaleDateString('pt-BR')}</div>
@@ -339,7 +339,7 @@ export default function MinhaContaPage() {
                           <a href={`/edicoes/${n.id}`} style={{ fontWeight: 600, display: 'block', marginBottom: 4 }}>
                             {n.title}
                           </a>
-                          <span style={{ fontFamily: 'var(--mono)', fontSize: '.72rem', color: 'var(--faint)' }}>
+                          <span style={{ fontFamily: 'var(--mono)', fontSize: '.72rem', color: 'var(--dim)' }}>
                             {n.sent_at ? new Date(n.sent_at).toLocaleDateString('pt-BR') : ''}
                           </span>
                         </li>

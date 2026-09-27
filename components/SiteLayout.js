@@ -83,7 +83,7 @@ export default function SiteLayout({
       <footer>
         <div className="wrap">
           <div className="brand">
-            SEM <span style={{ color: 'var(--red)' }}>MIMIMI</span>
+            SEM <span style={{ color: 'var(--red-dark)' }}>MIMIMI</span>
           </div>
           <nav>
             <Link href="/">Início</Link>
