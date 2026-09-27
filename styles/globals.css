@@ -16,8 +16,8 @@
 
   /* Nomes vêm do next/font (ver lib/fonts.js + pages/_document.js) — não mudou
      nenhum outro uso de var(--display)/var(--body)/var(--mono) no resto do CSS. */
-  --display: var(--font-anton), 'Archivo', sans-serif;
-  --body: var(--font-archivo), sans-serif;
+  --display: var(--font-display), sans-serif;
+  --body: var(--font-body), sans-serif;
   --mono: var(--font-ibm-plex-mono), monospace;
   --max: 900px;
 }
@@ -33,7 +33,7 @@ a{ color: var(--ink); text-decoration:none; }
 a:hover{ color: var(--red); }
 img{ max-width:100%; display:block; }
 h1,h2,h3{
-  font-family: var(--display); font-weight:400; text-transform:uppercase;
+  font-family: var(--display); font-weight:700; text-transform:uppercase;
   color: var(--ink); letter-spacing:-0.01em; line-height:1.04; margin:0 0 .5em;
 }
 .wrap{ max-width: var(--max); margin:0 auto; padding: 0 28px; }
@@ -49,7 +49,7 @@ header{ border-bottom: 1px solid var(--line); position:sticky; top:0; background
   display:flex; align-items:center; justify-content:space-between;
   max-width: var(--max); margin: 0 auto; padding: 18px 28px; gap:20px; flex-wrap:wrap;
 }
-.brand{ font-family: var(--display); font-size:1.1rem; text-transform:uppercase; }
+.brand{ font-family: var(--display); font-weight:700; font-size:1.1rem; text-transform:uppercase; }
 .brand span{ color: var(--red-dark); }
 nav.primary{ display:flex; gap:22px; align-items:center; flex-wrap:wrap; }
 nav.primary a{
@@ -95,7 +95,7 @@ section.tight{ padding: 44px 0; }
 .guide{ display:grid; grid-template-columns: 120px 1fr; gap:26px; align-items:start; }
 .guide .badge{
   width:96px; height:96px; border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
-  font-family: var(--display); font-size:1.6rem; color:var(--red); background: var(--bg2);
+  font-family: var(--display); font-weight:700; font-size:1.6rem; color:var(--red); background: var(--bg2);
 }
 @media (max-width:560px){ .guide{ grid-template-columns:1fr; } .guide .badge{ width:72px;height:72px; font-size:1.2rem; } }
 
@@ -135,7 +135,7 @@ section.tight{ padding: 44px 0; }
 .issue ul{ color:var(--dim); padding-left:20px; }
 .issue li{ margin-bottom:8px; }
 .issue .quote{
-  font-family: var(--display); text-transform:uppercase; font-size:1.1rem; color: var(--ink);
+  font-family: var(--display); font-weight:700; text-transform:uppercase; font-size:1.1rem; color: var(--ink);
   margin: 20px 0 0; padding-top:16px; border-top:1px dashed var(--line);
 }
 .issue .quote span{ color: var(--red-dark); }
@@ -150,7 +150,7 @@ section.tight{ padding: 44px 0; }
   font-size:.64rem; letter-spacing:.08em; text-transform:uppercase; padding:4px 10px; font-weight:700;
 }
 .plan-card h3{ font-family: var(--body); font-weight:700; text-transform:none; letter-spacing:0; font-size:1.2rem; margin-bottom:6px; }
-.plan-card .price{ font-family: var(--display); font-size:2.2rem; color:var(--ink); margin:8px 0 4px; text-transform:none; }
+.plan-card .price{ font-family: var(--display); font-weight:700; font-size:2.2rem; color:var(--ink); margin:8px 0 4px; text-transform:none; }
 .plan-card .price small{ font-family: var(--mono); font-size:.9rem; color:var(--dim); text-transform:uppercase; }
 .plan-card .per{ font-family: var(--mono); font-size:.72rem; color:var(--dim); text-transform:uppercase; margin-bottom:20px; }
 .plan-card ul{ list-style:none; padding:0; margin:0 0 24px; flex:1; }
@@ -195,12 +195,12 @@ footer nav a:hover{ color: var(--red); }
 .admin-sidebar nav a.active{ color:var(--red-dark); border-left-color:var(--red-dark); background:var(--bg); font-weight:700; }
 .admin-main{ flex:1; padding:36px 40px; max-width:1180px; }
 .admin-topbar{ display:flex; justify-content:space-between; align-items:center; margin-bottom:28px; flex-wrap:wrap; gap:12px; }
-.admin-title{ font-family:var(--display); text-transform:uppercase; font-size:1.5rem; margin:0; }
+.admin-title{ font-family:var(--display); font-weight:700; text-transform:uppercase; font-size:1.5rem; margin:0; }
 
 .admin-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:18px; margin-bottom:32px; }
 .admin-card{ border:1px solid var(--line); background:var(--bg2); padding:20px; }
 .admin-card .label{ font-family:var(--mono); font-size:.68rem; text-transform:uppercase; letter-spacing:.06em; color:var(--dim); display:block; margin-bottom:8px; }
-.admin-card .value{ font-family:var(--display); font-size:1.7rem; }
+.admin-card .value{ font-family:var(--display); font-weight:700; font-size:1.7rem; }
 .admin-card .sub{ font-family:var(--mono); font-size:.72rem; color:var(--dim); margin-top:6px; }
 
 .admin-table-wrap{ border:1px solid var(--line); overflow-x:auto; background:var(--bg); }

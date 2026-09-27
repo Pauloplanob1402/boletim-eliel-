@@ -27,7 +27,7 @@ export default function SiteLayout({
         {description && <meta name="description" content={description} />}
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="canonical" href={canonical} />
-        {/* As fontes (Anton/Archivo/IBM Plex Mono) são carregadas uma única vez, via
+        {/* As fontes (Instrument Sans/Hanken Grotesk/IBM Plex Mono) são carregadas uma única vez, via
             next/font, na tag <Html> de pages/_document.js — não duplicar aqui. */}
         {noindex && <meta name="robots" content="noindex, nofollow" />}
 
