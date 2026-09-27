@@ -1,14 +1,14 @@
 import { Html, Head, Main, NextScript } from 'next/document';
+import { anton, archivo, ibmPlexMono } from '../lib/fonts';
 
+// As classes de fonte (next/font) vão na tag <Html> — é o único lugar que preenche
+// o :root do CSS (styles/globals.css usa var(--font-anton) etc. dentro de
+// --display/--body/--mono), então toda página do site herda as 3 fontes sem
+// precisar importar nada disso de novo em nenhum outro arquivo.
 export default function Document() {
   return (
-    <Html lang="pt-BR">
+    <Html lang="pt-BR" className={`${anton.variable} ${archivo.variable} ${ibmPlexMono.variable}`}>
       <Head>
-        <link
-          href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
-          rel="stylesheet"
-        />
-
         {/* Favicon — ver components/SiteLayout.js e components/AdminLayout.js para as
             meta tags de título/descrição/OG, que mudam por página. Os ícones ficam aqui
             porque são os mesmos em todo o site. */}

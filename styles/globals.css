@@ -14,9 +14,11 @@
   --gold: #b3852c;
   --gold-dark: #8a6428;
 
-  --display: 'Anton', 'Archivo', sans-serif;
-  --body: 'Archivo', sans-serif;
-  --mono: 'IBM Plex Mono', monospace;
+  /* Nomes vêm do next/font (ver lib/fonts.js + pages/_document.js) — não mudou
+     nenhum outro uso de var(--display)/var(--body)/var(--mono) no resto do CSS. */
+  --display: var(--font-anton), 'Archivo', sans-serif;
+  --body: var(--font-archivo), sans-serif;
+  --mono: var(--font-ibm-plex-mono), monospace;
   --max: 900px;
 }
 
