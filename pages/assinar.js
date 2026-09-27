@@ -5,7 +5,7 @@ import { createAdminClient } from '../lib/supabase/adminClient';
 
 const DIAS = ['segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado', 'domingo'];
 
-export async function getServerSideProps() {
+export async function getStaticProps() {
   let subscriberCount = 0;
   try {
     const admin = createAdminClient();
@@ -17,7 +17,7 @@ export async function getServerSideProps() {
   } catch (err) {
     console.error('Falha ao buscar contagem de assinantes:', err.message);
   }
-  return { props: { subscriberCount } };
+  return { props: { subscriberCount }, revalidate: 60 };
 }
 
 export default function AssinarPage({ subscriberCount }) {

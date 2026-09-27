@@ -27,6 +27,15 @@ export default function SiteLayout({
         {description && <meta name="description" content={description} />}
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="canonical" href={canonical} />
+
+        {/* Preconnect + link (em vez de @import no CSS) — deixa o navegador buscar
+            a fonte em paralelo com o HTML, não só depois de baixar e ler o CSS. */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+        />
         {noindex && <meta name="robots" content="noindex, nofollow" />}
 
         {/* Open Graph — como o link aparece quando compartilhado no WhatsApp,
