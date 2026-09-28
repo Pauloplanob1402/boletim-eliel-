@@ -327,6 +327,13 @@ export default function AssinarPage({ subscriberCount }) {
               <div className="trust-note" style={{ marginTop: 14 }}>
                 Você será redirecionado ao Mercado Pago para concluir o pagamento com segurança.
               </div>
+              <div className="trust-note" style={{ marginTop: 10 }}>
+                Depois de assinar, confira o spam e adicione{' '}
+                <a href="mailto:contato@tiagopavinatto.com.br" style={{ textDecoration: 'underline' }}>
+                  contato@tiagopavinatto.com.br
+                </a>{' '}
+                aos seus contatos.
+              </div>
             </div>
           </form>
         </div>
