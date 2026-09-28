@@ -1,10 +1,26 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import SiteLayout from '../components/SiteLayout';
+import { createAdminClient } from '../lib/supabase/adminClient';
 
 const DIAS = ['segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado', 'domingo'];
 
-export default function AssinarPage() {
+export async function getStaticProps() {
+  let subscriberCount = 0;
+  try {
+    const admin = createAdminClient();
+    const { count } = await admin
+      .from('newsletter_subscribers')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'active');
+    subscriberCount = count || 0;
+  } catch (err) {
+    console.error('Falha ao buscar contagem de assinantes:', err.message);
+  }
+  return { props: { subscriberCount }, revalidate: 60 };
+}
+
+export default function AssinarPage({ subscriberCount }) {
   const router = useRouter();
   const [form, setForm] = useState({
     nome: '',
@@ -83,22 +99,23 @@ export default function AssinarPage() {
             Você já viu uma edição inteira. Sabe o tom, sabe o nível de detalhe. Agora é só
             decidir a frequência do plano e os seus dados de assinante.
           </p>
-          <span
-            style={{
-              display: 'inline-block',
-              fontFamily: 'var(--mono)',
-              fontSize: '.78rem',
-              letterSpacing: '.04em',
-              textTransform: 'uppercase',
-              color: 'var(--dim)',
-              border: '1px solid var(--line)',
-              padding: '8px 16px',
-              marginTop: 6,
-              background: 'var(--bg2)',
-            }}
-          >
-            +2 milhões acompanham Pavinatto — junte-se a quem decidiu não aceitar mimimi
-          </span>
+          {subscriberCount > 0 && (
+            <span
+              style={{
+                display: 'inline-block',
+                fontFamily: 'var(--mono)',
+                fontSize: '.78rem',
+                letterSpacing: '.04em',
+                textTransform: 'uppercase',
+                color: 'var(--dim)',
+                border: '1px solid var(--line)',
+                padding: '8px 16px',
+                marginTop: 6,
+              }}
+            >
+              Junte-se a +{subscriberCount} leitores que não aceitam mimimi
+            </span>
+          )}
         </div>
       </section>
 
@@ -219,26 +236,12 @@ export default function AssinarPage() {
               </label>
             </div>
 
-            <div
-              style={{
-                maxWidth: 520,
-                background: 'var(--bg2)',
-                border: '1px solid var(--line)',
-                borderTop: '3px solid var(--red)',
-                padding: '28px 26px',
-              }}
-            >
-              <span className="eyebrow" style={{ marginBottom: 10 }}>
-                Falta só isso
-              </span>
-              <h2 style={{ fontSize: '1.3rem', marginBottom: 8, maxWidth: '20ch' }}>
-                Coloque seu nome na lista e faça parte disso
-              </h2>
-              <p className="lede" style={{ fontSize: '.95rem', margin: '0 0 22px', maxWidth: 'none' }}>
-                {form.isGift
-                  ? 'Agora os seus dados — quem está pagando o presente e vai receber o recibo.'
-                  : 'É só isso: seu nome e seu e-mail, e a próxima edição já chega pra você.'}
-              </p>
+            <div style={{ maxWidth: 520 }}>
+              {form.isGift && (
+                <div className="trust-note" style={{ marginBottom: 14 }}>
+                  Agora os seus dados — quem está pagando o presente e vai receber o recibo.
+                </div>
+              )}
               <div className="form-row">
                 <div className="form-field">
                   <label htmlFor="nome">{form.isGift ? 'Seu nome' : 'Nome'}</label>
