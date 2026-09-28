@@ -262,7 +262,7 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
       if (!res.ok) {
         setError(data.error || 'Erro ao enviar teste.');
       } else {
-        setMessage(`Teste enviado para ${testEmail}.`);
+        setMessage(`Teste enviado para ${testEmail} (via ${data.provider}).`);
       }
     } catch {
       setError('Erro de conexão ao enviar teste.');

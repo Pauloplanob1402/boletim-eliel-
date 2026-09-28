@@ -52,8 +52,10 @@ export default async function handler(req, res) {
   const text = buildNewsletterEmailText({ title, bodyHtml: personalized, unsubscribeUrl });
 
   try {
-    await emailProvider.sendTest({ toEmail, subject, htmlContent: html, textContent: text });
-    return res.status(200).json({ ok: true });
+    const providerName = (process.env.EMAIL_PROVIDER || 'sender').trim().toLowerCase();
+    const result = await emailProvider.sendTest({ toEmail, subject, htmlContent: html, textContent: text });
+    console.log('[send-test]', providerName, toEmail, JSON.stringify(result));
+    return res.status(200).json({ ok: true, provider: providerName });
   } catch (err) {
     return res.status(502).json({ error: 'Falha ao enviar teste: ' + err.message });
   }
