@@ -5,6 +5,7 @@ import { renderNewsletter } from '../../../lib/newsletter/render';
 import { estimateReadingMinutes } from '../../../lib/newsletter/readingTime';
 import { buildNewsletterEmailHtml, buildNewsletterEmailText } from '../../../lib/newsletter/emailTemplate';
 import { emailProvider } from '../../../lib/email/provider';
+import { createAdminClient } from '../../../lib/supabase/adminClient';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Método não permitido.' });
@@ -17,7 +18,22 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Informe o e-mail de teste, o assunto e o conteúdo.' });
   }
 
-  const sampleSubscriber = { nome: 'Teste', email: toEmail };
+  // Usa o nome real do assinante com esse e-mail (se existir), para o teste mostrar
+  // "Olá, Paulo." em vez de um nome fixo. Sem cadastro, cai em "Teste".
+  let nome = 'Teste';
+  try {
+    const admin = createAdminClient();
+    const { data } = await admin
+      .from('newsletter_subscribers')
+      .select('nome')
+      .eq('email', String(toEmail).trim().toLowerCase())
+      .maybeSingle();
+    if (data?.nome && data.nome.trim()) nome = data.nome.trim();
+  } catch {
+    // Se a busca falhar, o teste continua com o nome padrão.
+  }
+
+  const sampleSubscriber = { nome, email: toEmail };
   const personalized = renderNewsletter(content_html, sampleSubscriber);
   const unsubscribeUrl = `${process.env.APP_URL}/api/unsubscribe?email=${encodeURIComponent(toEmail)}&token=teste`;
   const readingMinutes = estimateReadingMinutes(content_html);
@@ -39,6 +55,6 @@ export default async function handler(req, res) {
     await emailProvider.sendTest({ toEmail, subject, htmlContent: html, textContent: text });
     return res.status(200).json({ ok: true });
   } catch (err) {
-    return res.status(502).json({ error: 'Falha ao enviar teste pela Sender: ' + err.message });
+    return res.status(502).json({ error: 'Falha ao enviar teste: ' + err.message });
   }
 }
