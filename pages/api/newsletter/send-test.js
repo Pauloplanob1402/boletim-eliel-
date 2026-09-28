@@ -4,7 +4,7 @@ import { requireAdminApi } from '../../../lib/supabase/requireAdminApi';
 import { renderNewsletter } from '../../../lib/newsletter/render';
 import { estimateReadingMinutes } from '../../../lib/newsletter/readingTime';
 import { buildNewsletterEmailHtml, buildNewsletterEmailText } from '../../../lib/newsletter/emailTemplate';
-import { emailProvider } from '../../../lib/sender/client';
+import { emailProvider } from '../../../lib/email/provider';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Método não permitido.' });

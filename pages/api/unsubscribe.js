@@ -2,7 +2,7 @@
 // Aceita ?id=<newsletter_subscribers.id> (link canônico) ou ?email=... como
 // fallback simples. GET para funcionar como link direto no e-mail.
 import { createAdminClient } from '../../lib/supabase/adminClient';
-import { emailProvider } from '../../lib/sender/client';
+import { emailProvider } from '../../lib/email/provider';
 
 export default async function handler(req, res) {
   const { id, email } = req.query;

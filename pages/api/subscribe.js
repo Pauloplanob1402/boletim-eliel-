@@ -11,7 +11,7 @@
 // (via magic link com o próprio e-mail) e escolher o dia preferido dela.
 import { createAdminClient } from '../../lib/supabase/adminClient';
 import { createSubscription } from '../../lib/mercadopago/client';
-import { emailProvider } from '../../lib/sender/client';
+import { emailProvider } from '../../lib/email/provider';
 import { buildWelcomeEmailHtml } from '../../lib/newsletter/emailTemplate';
 
 const PLAN_CONFIG = {

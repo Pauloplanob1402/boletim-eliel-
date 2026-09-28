@@ -4,7 +4,7 @@
 // de mudar qualquer coisa no banco.
 import { createAdminClient } from '../../../lib/supabase/adminClient';
 import { getPayment, getSubscription, verifyWebhookSignature, calculateRevenueSplit } from '../../../lib/mercadopago/client';
-import { emailProvider } from '../../../lib/sender/client';
+import { emailProvider } from '../../../lib/email/provider';
 import { REVENUE_SPLIT_TABLE } from '../../../lib/newsletter/revenue';
 import { buildGiftWelcomeEmailHtml } from '../../../lib/newsletter/emailTemplate';
 

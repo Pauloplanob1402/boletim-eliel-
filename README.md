@@ -411,3 +411,23 @@ Da checklist de pré-lançamento, os itens que só vocês conseguem fechar, porq
 - Configurar a chave Pix de cada beneficiário em `/admin/receitas` (o repasse em si
   ainda é um clique manual seu todo mês, só ficou rápido — não é automático).
 - Teste ponta a ponta com pagamento de teste (assinar → confirmar → newsletter chegar → cancelar).
+
+---
+
+## Trocar de provedor de e-mail (Sender ou Brevo)
+
+O site escolhe o provedor pela variável `EMAIL_PROVIDER` na Vercel. Depois de mudar, faça **Redeploy**.
+
+| Variável | Sender (padrão) | Brevo |
+|---|---|---|
+| `EMAIL_PROVIDER` | `sender` (ou vazia) | `brevo` |
+| Chave de API | `SENDER_API_KEY` | `BREVO_API_KEY` |
+| Lista de assinantes | `SENDER_GROUP_ID` | `BREVO_LIST_ID` (número da lista, em CRM > Listas) |
+| Remetente | `SENDER_FROM_EMAIL` / `SENDER_FROM_NAME` | `BREVO_FROM_EMAIL` / `BREVO_FROM_NAME` (se vazios, usa os do Sender) |
+
+Notas do Brevo:
+- O remetente precisa estar **verificado** no Brevo e o domínio autenticado (DKIM e DMARC).
+- Plano gratuito: limite de **300 e-mails por dia**, somando campanhas e e-mails avulsos. O teste A/B de assunto do admin **não** funciona no Brevo gratuito, deixe o assunto B vazio.
+- Nas campanhas, o Brevo acrescenta o próprio rodapé de descadastro. Quem clica nele sai da lista do Brevo.
+- Assinantes ativos no Supabase que ainda não estão na lista do Brevo precisam ser cadastrados lá (importação em CRM > Listas), porque o site só cadastra automaticamente quem paga a partir da troca.
+- Para conferir na primeira vez: em um envio real, veja se o nome aparece no lugar de `{{ contact.FIRSTNAME }}` e se os links de enquete e descadastro levam o e-mail certo.
