@@ -286,3 +286,55 @@ table.admin-table td.strong{ color:var(--ink); font-weight:600; }
 .admin-alert.success{ border-color:#3f6b1f; color:#3f6b1f; background:#eef4e6; }
 
 .login-box{ max-width:380px; margin:80px auto; padding:36px; border:1px solid var(--line); background:var(--bg2); }
+
+/* ---- Editor de newsletter: barra fixa, avisos, prévia da caixa de entrada, checklist ---- */
+.edit-bar{
+  position:sticky; top:0; z-index:15; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;
+  background:rgba(251,246,238,.97); border-bottom:1px solid var(--line); padding:10px 0; margin:-12px 0 22px;
+}
+.save-status{ font-family:var(--mono); font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:var(--dim); }
+.save-status.dirty{ color:var(--red-dark); font-weight:700; }
+.edit-bar-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+.edit-bar .admin-btn{ padding:8px 12px; font-size:.7rem; }
+
+.toast-area{ position:fixed; left:50%; bottom:22px; transform:translateX(-50%); z-index:60; width:min(560px, calc(100vw - 32px)); display:flex; flex-direction:column; gap:8px; }
+.toast{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin:0; box-shadow:0 6px 24px rgba(43,33,24,.18); }
+.toast button{ background:none; border:none; font-size:1.3rem; line-height:1; cursor:pointer; color:inherit; padding:0 4px; }
+
+.char-counter{ font-family:var(--mono); font-size:.66rem; color:var(--faint); margin-top:5px; }
+.char-counter.over{ color:var(--red-dark); }
+
+.inbox-preview{ border:1px solid var(--line); background:#fff; padding:12px 14px; margin:0 0 22px; }
+.inbox-tag{ display:block; font-family:var(--mono); font-size:.62rem; text-transform:uppercase; letter-spacing:.05em; color:var(--dim); margin-bottom:8px; }
+.inbox-row{ display:flex; gap:14px; align-items:baseline; font-family:Arial,sans-serif; font-size:.9rem; overflow:hidden; white-space:nowrap; }
+.inbox-sender{ flex:0 0 110px; font-weight:700; color:#202124; }
+.inbox-line{ flex:1; overflow:hidden; text-overflow:ellipsis; color:#202124; }
+.inbox-pre{ color:#5f6368; }
+
+.hero-preview{ display:flex; gap:14px; align-items:flex-end; flex-wrap:wrap; }
+.hero-preview img{ max-width:260px; display:block; border:1px solid var(--line); }
+
+.more-options{ border:1px dashed var(--line); padding:12px 16px; margin-bottom:8px; }
+.more-options summary{ cursor:pointer; font-family:var(--mono); font-size:.74rem; text-transform:uppercase; letter-spacing:.04em; color:var(--dim); }
+
+.editor-toolbar{ position:sticky; top:52px; z-index:10; }
+.editor-canvas:empty:before, .editor-canvas[data-placeholder]:empty:before{ content:attr(data-placeholder); color:var(--faint); pointer-events:none; }
+.editor-canvas:focus{ border-color:var(--red); }
+
+.checklist{ list-style:none; margin:0 0 22px; padding:0; }
+.checklist li{ display:flex; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid var(--line-soft); font-size:.94rem; color:var(--dim); }
+.checklist li.ok{ color:#3f6b1f; }
+.check-mark{ width:22px; text-align:center; font-weight:700; }
+.check-label{ background:none; border:none; padding:0; font:inherit; color:inherit; cursor:pointer; text-align:left; }
+.check-label:hover{ text-decoration:underline; }
+.check-tag{ font-family:var(--mono); font-size:.62rem; text-transform:uppercase; color:var(--gold-dark); border:1px solid var(--gold-dark); padding:1px 6px; }
+
+.send-steps{ display:flex; flex-direction:column; gap:14px; }
+.send-step{ display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; border:1px solid var(--line); background:var(--bg2); padding:16px 18px; }
+.send-step.primary{ border-color:var(--red-dark); background:#fbeee6; }
+.send-step p{ margin:2px 0 10px; font-size:.84rem; color:var(--dim); }
+.send-step > div > p:last-child{ margin-bottom:0; }
+
+.quick-times{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+.quick-times .admin-btn{ padding:8px 12px; }
+.guide-box .guide-title:focus-visible{ outline:2px solid var(--red-dark); outline-offset:3px; }

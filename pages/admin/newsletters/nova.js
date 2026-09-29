@@ -33,6 +33,7 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
   const editorRef = useRef(null);
   const contentImageInputRef = useRef(null);
   const savedRangeRef = useRef(null);
+  const mountedRef = useRef(false);
 
   const [id, setId] = useState(initialNewsletter?.id || null);
   const [title, setTitle] = useState(initialNewsletter?.title || '');
@@ -42,22 +43,31 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
   const [heroImageUrl, setHeroImageUrl] = useState(initialNewsletter?.hero_image_url || '');
   const [whyItMatters, setWhyItMatters] = useState(initialNewsletter?.why_it_matters || '');
   const [status, setStatus] = useState(initialNewsletter?.status || 'draft');
-  const [readingMinutes, setReadingMinutes] = useState(0);
+
+  const [wordCount, setWordCount] = useState(0);
+  const [hasImage, setHasImage] = useState(false);
 
   const [saving, setSaving] = useState(false);
+  const [dirty, setDirty] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState(null);
+  const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
   const [previewHtml, setPreviewHtml] = useState('');
   const [showPreview, setShowPreview] = useState(false);
+  const [previewed, setPreviewed] = useState(false);
 
-  const [testEmail, setTestEmail] = useState('');
+  const [testEmail, setTestEmail] = useState(adminUser?.email || '');
   const [sendingTest, setSendingTest] = useState(false);
+  const [testSent, setTestSent] = useState(false);
 
   const [scheduledAt, setScheduledAt] = useState('');
   const [showSendConfirm, setShowSendConfirm] = useState(false);
   const [recipientCountPreview, setRecipientCountPreview] = useState(null);
   const [sending, setSending] = useState(false);
+
+  const [dialog, setDialog] = useState(null); // { type, values, hasSel }
 
   const [showGuide, setShowGuide] = useState(true);
   useEffect(() => {
@@ -87,11 +97,45 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialNewsletter]);
 
+  // Qualquer edição = "alterações não salvas" e exige rever prévia/teste de novo.
+  function markDirty() {
+    setDirty(true);
+    setPreviewed(false);
+    setTestSent(false);
+  }
+  useEffect(() => {
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      return;
+    }
+    markDirty();
+  }, [title, subject, subjectB, preheader, heroImageUrl, whyItMatters]);
+
+  // Avisa antes de fechar a aba com alterações não salvas.
+  useEffect(() => {
+    if (!dirty) return undefined;
+    const handler = (e) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [dirty]);
+
+  // Mensagem de sucesso some sozinha; erro fica até o usuário fechar.
+  useEffect(() => {
+    if (!message) return undefined;
+    const t = setTimeout(() => setMessage(''), 7000);
+    return () => clearTimeout(t);
+  }, [message]);
+
   function exec(command, value = null) {
     editorRef.current?.focus();
     restoreSelection();
     document.execCommand(command, false, value);
     saveSelection();
+    markDirty();
+    updateReadingTime();
   }
 
   function insertHtml(html) {
@@ -99,6 +143,8 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
     restoreSelection();
     document.execCommand('insertHTML', false, html);
     saveSelection();
+    markDirty();
+    updateReadingTime();
   }
 
   function saveSelection() {
@@ -115,92 +161,133 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
     sel.addRange(savedRangeRef.current);
   }
 
-  function handleLink() {
-    const sel = window.getSelection();
-    const hasTextSelected =
-      sel && sel.rangeCount > 0 && !sel.isCollapsed && editorRef.current && editorRef.current.contains(sel.anchorNode);
-
-    const url = window.prompt('Para onde esse link deve levar? (cole a URL completa, começando com https://)');
-    if (!url) return;
-
-    if (hasTextSelected) {
-      // Já tem um texto selecionado no editor: só transforma esse texto em link.
-      exec('createLink', url);
-    } else {
-      // Nada selecionado: pergunta o texto e insere já como link, no lugar do cursor.
-      const texto = window.prompt('Qual texto deve aparecer sublinhado, clicável, no e-mail?', 'clique aqui');
-      if (!texto) return;
-      insertHtml(`<a href="${url}" style="color:#d9591a; text-decoration:underline;">${texto}</a>`);
-    }
+  function updateReadingTime() {
+    const el = editorRef.current;
+    const text = (el?.innerText || '').trim();
+    setWordCount(text ? text.split(/\s+/).length : 0);
+    setHasImage(!!el?.querySelector('img'));
   }
 
-  function handleImageUrl() {
-    const url = window.prompt('URL https da imagem:');
-    if (url) insertHtml(`<img src="${url}" alt="" style="max-width:100%; display:block; margin:16px 0;" />`);
+  function scrollToField(fieldId) {
+    const el = document.getElementById(fieldId);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => el.focus?.(), 300);
   }
 
-  function handleImage() {
+  // Colar sempre como texto puro: evita a "sujeira" de formatação do Word/Google Docs/site.
+  function handlePaste(e) {
+    const text = e.clipboardData?.getData('text/plain');
+    if (!text) return;
+    e.preventDefault();
     saveSelection();
-    contentImageInputRef.current?.click();
+    if (!/\n/.test(text.trim())) {
+      editorRef.current?.focus();
+      restoreSelection();
+      document.execCommand('insertText', false, text);
+      saveSelection();
+      markDirty();
+      updateReadingTime();
+      return;
+    }
+    const html = text
+      .trim()
+      .split(/\r?\n+/)
+      .filter((line) => line.trim())
+      .map((line) => `<p>${escapeHtml(line)}</p>`)
+      .join('');
+    insertHtml(html);
   }
 
-  function handleButton() {
-    const texto = window.prompt('Texto do botão:', 'SAIBA MAIS');
-    if (!texto) return;
-    const url = window.prompt('URL do botão:');
-    if (!url) return;
-    insertHtml(
-      `<p style="text-align:center; margin:24px 0;"><a href="${url}" style="display:inline-block; background:#d9591a; color:#fbf6ee; font-family:Arial,sans-serif; font-weight:bold; text-transform:uppercase; letter-spacing:1px; font-size:13px; padding:14px 26px; text-decoration:none;">${texto}</a></p>`
+  // ---------- Janelas de inserção (no lugar dos prompts do navegador) ----------
+  function openDialog(type) {
+    saveSelection();
+    const sel = window.getSelection();
+    const hasSel = !!(
+      sel && sel.rangeCount > 0 && !sel.isCollapsed && editorRef.current && editorRef.current.contains(sel.anchorNode)
     );
+    const defaults = {
+      link: { url: '', text: 'clique aqui' },
+      button: { text: 'SAIBA MAIS', url: '' },
+      image: { url: '' },
+      youtube: { url: '', title: 'Assista ao vídeo de hoje' },
+    };
+    setDialog({ type, values: defaults[type], hasSel });
+  }
+  function setDialogValue(key, value) {
+    setDialog((d) => ({ ...d, values: { ...d.values, [key]: value } }));
+  }
+
+  function submitDialog() {
+    if (!dialog) return;
+    const { type, values, hasSel } = dialog;
+    const url = normalizeUrl(values.url);
+    if (!url) {
+      setError('Cole o endereço (URL) para continuar.');
+      return;
+    }
+    setError('');
+
+    if (type === 'link') {
+      if (hasSel) {
+        exec('createLink', url);
+      } else {
+        const texto = escapeHtml((values.text || '').trim() || url);
+        insertHtml(`<a href="${escapeAttr(url)}" style="color:#d9591a; text-decoration:underline;">${texto}</a>`);
+      }
+    } else if (type === 'button') {
+      const texto = escapeHtml((values.text || '').trim() || 'SAIBA MAIS');
+      insertHtml(
+        `<p style="text-align:center; margin:24px 0;"><a href="${escapeAttr(url)}" style="display:inline-block; background:#d9591a; color:#fbf6ee; font-family:Arial,sans-serif; font-weight:bold; text-transform:uppercase; letter-spacing:1px; font-size:13px; padding:14px 26px; text-decoration:none;">${texto}</a></p>`
+      );
+    } else if (type === 'image') {
+      insertHtml(`<img src="${escapeAttr(url)}" alt="" style="max-width:100%; display:block; margin:16px 0;" />`);
+    } else if (type === 'youtube') {
+      const videoId = extractYoutubeId(url);
+      if (!videoId) {
+        setError('Não consegui reconhecer esse link do YouTube. Copie o endereço direto da barra do navegador.');
+        return;
+      }
+      const tituloVideo = escapeHtml((values.title || '').trim());
+      const thumb = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+      insertHtml(`
+        <div style="margin:28px 0; text-align:center;">
+          <h3 style="margin:0 0 14px;">${tituloVideo}</h3>
+          <a href="https://www.youtube.com/watch?v=${videoId}" style="display:block; position:relative; margin:0 0 14px;">
+            <img src="${thumb}" alt="" style="max-width:100%; display:block;" />
+          </a>
+          <a href="https://www.youtube.com/watch?v=${videoId}" style="display:inline-block; background:#d9591a; color:#fbf6ee; font-family:Arial,sans-serif; font-weight:bold; text-transform:uppercase; letter-spacing:1px; font-size:13px; padding:14px 26px; text-decoration:none;">ASSISTIR NO YOUTUBE</a>
+        </div>
+      `);
+    }
+    setDialog(null);
   }
 
   function handleSeparator() {
     insertHtml('<hr style="border:none; border-top:1px solid #e2d5bd; margin:28px 0;" />');
   }
-
   function handleQuote() {
     insertHtml('<blockquote style="border-left:3px solid #d9591a; margin:20px 0; padding:4px 0 4px 16px; color:#6f6252; font-style:italic;">Cite algo aqui</blockquote>');
   }
-
   function handleDestaque() {
     insertHtml('<div style="background:#f4ecdd; border-left:3px solid #d9591a; padding:14px 18px; margin:20px 0;"><strong>Destaque:</strong> escreva aqui o resumo em 1-2 frases.</div>');
   }
-
-  function updateReadingTime() {
-    const text = (editorRef.current?.innerText || '').trim();
-    const words = text ? text.split(/\s+/).length : 0;
-    setReadingMinutes(Math.max(1, Math.round(words / 200)));
+  function handleNomeLeitor() {
+    insertHtml('{{nome}}');
   }
 
-  function handleYoutube() {
-    const url = window.prompt('Link do vídeo no YouTube:');
-    if (!url) return;
-    const videoId = extractYoutubeId(url);
-    if (!videoId) {
-      window.alert('Não consegui identificar o ID do vídeo nesse link. Cole a URL completa do YouTube.');
-      return;
-    }
-    const tituloVideo = window.prompt('Título/chamada para o vídeo:', 'Assista ao vídeo de hoje');
-    const thumb = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
-    insertHtml(`
-      <div style="margin:28px 0; text-align:center;">
-        <h3 style="margin:0 0 14px;">${tituloVideo || ''}</h3>
-        <a href="https://www.youtube.com/watch?v=${videoId}" style="display:block; position:relative; margin:0 0 14px;">
-          <img src="${thumb}" alt="" style="max-width:100%; display:block;" />
-        </a>
-        <a href="https://www.youtube.com/watch?v=${videoId}" style="display:inline-block; background:#d9591a; color:#fbf6ee; font-family:Arial,sans-serif; font-weight:bold; text-transform:uppercase; letter-spacing:1px; font-size:13px; padding:14px 26px; text-decoration:none;">ASSISTIR NO YOUTUBE</a>
-      </div>
-    `);
-  }
-
+  // ---------- Upload de imagens ----------
   async function handleImageUpload(e) {
     const file = e.target.files?.[0];
     if (!file) return;
+    e.target.value = '';
     setError('');
-    const path = `hero/${Date.now()}-${file.name}`;
+    setUploading(true);
+    const path = `hero/${Date.now()}-${safeFileName(file.name)}`;
     const { error: uploadError } = await supabase.storage.from('newsletter-media').upload(path, file);
+    setUploading(false);
     if (uploadError) {
-      setError('Falha ao enviar imagem: ' + uploadError.message);
+      setError('Não consegui enviar a imagem: ' + uploadError.message);
       return;
     }
     const { data } = supabase.storage.from('newsletter-media').getPublicUrl(path);
@@ -212,14 +299,38 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
     if (!file) return;
     e.target.value = ''; // permite selecionar o mesmo arquivo de novo depois
     setError('');
-    const path = `content/${Date.now()}-${file.name}`;
+    setUploading(true);
+    const path = `content/${Date.now()}-${safeFileName(file.name)}`;
     const { error: uploadError } = await supabase.storage.from('newsletter-media').upload(path, file);
+    setUploading(false);
     if (uploadError) {
-      setError('Falha ao enviar imagem: ' + uploadError.message);
+      setError('Não consegui enviar a imagem: ' + uploadError.message);
       return;
     }
     const { data } = supabase.storage.from('newsletter-media').getPublicUrl(path);
-    insertHtml(`<img src="${data.publicUrl}" alt="" style="max-width:100%; display:block; margin:16px 0;" />`);
+    insertHtml(`<img src="${escapeAttr(data.publicUrl)}" alt="" style="max-width:100%; display:block; margin:16px 0;" />`);
+    setDialog(null);
+  }
+
+  // ---------- Validação amigável ----------
+  const hasContent = wordCount > 0 || hasImage;
+  const readingMinutes = wordCount ? Math.max(1, Math.round(wordCount / 200)) : 0;
+  const effectiveTitle = title.trim() || subject.trim();
+
+  // Retorna true se pode seguir; senão mostra o que falta e leva o usuário até o campo.
+  function checkRequired() {
+    if (!subject.trim()) {
+      setError('Falta o assunto do e-mail. É a primeira coisa que o leitor vê.');
+      scrollToField('field-subject');
+      return false;
+    }
+    if (!hasContent) {
+      setError('O e-mail está sem conteúdo. Escreva algo na caixa do passo 2.');
+      scrollToField('field-content');
+      editorRef.current?.focus();
+      return false;
+    }
+    return true;
   }
 
   function getContentHtml() {
@@ -227,9 +338,11 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
   }
 
   async function saveDraft() {
+    if (!checkRequired()) return null;
     setSaving(true);
     setError('');
     setMessage('');
+    let savedId = null;
     try {
       const headers = { 'Content-Type': 'application/json', ...(await authHeader(supabase)) };
       const res = await fetch('/api/newsletter/save', {
@@ -237,7 +350,7 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
         headers,
         body: JSON.stringify({
           id,
-          title,
+          title: effectiveTitle,
           subject,
           subject_b: subjectB,
           preheader,
@@ -248,40 +361,54 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'Erro ao salvar.');
+        setError(data.error || 'Não consegui salvar. Tente de novo.');
       } else {
-        setId(data.newsletter.id);
+        savedId = data.newsletter.id;
+        setId(savedId);
         setStatus(data.newsletter.status);
+        setDirty(false);
+        setLastSavedAt(new Date());
         setMessage('Rascunho salvo.');
         if (!router.query.id) {
-          router.replace(`/admin/newsletters/nova?id=${data.newsletter.id}`, undefined, { shallow: true });
+          router.replace(`/admin/newsletters/nova?id=${savedId}`, undefined, { shallow: true });
         }
       }
     } catch (err) {
-      setError('Erro de conexão ao salvar.');
+      setError('Sem conexão. Confira sua internet e tente salvar de novo.');
     }
     setSaving(false);
-    return id;
+    return savedId;
   }
 
   async function handlePreview() {
+    if (!hasContent) {
+      checkRequired();
+      return;
+    }
+    setError('');
     const headers = { 'Content-Type': 'application/json', ...(await authHeader(supabase)) };
     const res = await fetch('/api/newsletter/preview', {
       method: 'POST',
       headers,
-      body: JSON.stringify({ id, title, preheader, hero_image_url: heroImageUrl, why_it_matters: whyItMatters, content_html: getContentHtml() }),
+      body: JSON.stringify({ id, title: effectiveTitle, preheader, hero_image_url: heroImageUrl, why_it_matters: whyItMatters, content_html: getContentHtml() }),
     });
     const data = await res.json();
     if (res.ok) {
       setPreviewHtml(data.html);
       setShowPreview(true);
+      setPreviewed(true);
     } else {
-      setError(data.error || 'Erro ao gerar prévia.');
+      setError(data.error || 'Não consegui gerar a prévia.');
     }
   }
 
   async function handleSendTest() {
-    if (!testEmail) return;
+    if (!checkRequired()) return;
+    if (!testEmail) {
+      setError('Digite o e-mail que vai receber o teste.');
+      scrollToField('field-test-email');
+      return;
+    }
     setSendingTest(true);
     setError('');
     setMessage('');
@@ -290,16 +417,17 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
       const res = await fetch('/api/newsletter/send-test', {
         method: 'POST',
         headers,
-        body: JSON.stringify({ toEmail: testEmail, id, title, subject, preheader, hero_image_url: heroImageUrl, why_it_matters: whyItMatters, content_html: getContentHtml() }),
+        body: JSON.stringify({ toEmail: testEmail, id, title: effectiveTitle, subject, preheader, hero_image_url: heroImageUrl, why_it_matters: whyItMatters, content_html: getContentHtml() }),
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'Erro ao enviar teste.');
+        setError(data.error || 'Não consegui enviar o teste.');
       } else {
-        setMessage(`Teste enviado para ${testEmail} (via ${data.provider}).`);
+        setTestSent(true);
+        setMessage(`Teste enviado para ${testEmail}. Abra seu e-mail e confira (olhe também o spam).`);
       }
     } catch {
-      setError('Erro de conexão ao enviar teste.');
+      setError('Sem conexão ao enviar o teste.');
     }
     setSendingTest(false);
   }
@@ -329,21 +457,25 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'Erro ao enviar.');
+        setError(data.error || 'Não consegui enviar.');
       } else {
         setStatus('sent');
         setMessage(`Enviada para ${data.recipientCount} assinantes.`);
         setShowSendConfirm(false);
       }
     } catch {
-      setError('Erro de conexão ao enviar.');
+      setError('Sem conexão ao enviar.');
     }
     setSending(false);
   }
 
   async function confirmSchedule() {
     if (!scheduledAt) {
-      setError('Escolha data e hora para agendar.');
+      setError('Escolha o dia e a hora do envio.');
+      return;
+    }
+    if (new Date(scheduledAt).getTime() <= Date.now()) {
+      setError('Essa data já passou. Escolha um horário no futuro.');
       return;
     }
     setSending(true);
@@ -362,29 +494,80 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'Erro ao agendar.');
+        setError(data.error || 'Não consegui agendar.');
       } else {
         setStatus('scheduled');
         setMessage('Newsletter agendada.');
         setShowSendConfirm(false);
       }
     } catch {
-      setError('Erro de conexão ao agendar.');
+      setError('Sem conexão ao agendar.');
     }
     setSending(false);
   }
 
+  function pickQuickTime(hour, daysAhead) {
+    const d = new Date();
+    d.setDate(d.getDate() + daysAhead);
+    d.setHours(hour, 0, 0, 0);
+    setScheduledAt(toLocalInput(d));
+  }
+
+  const saveLabel = saving
+    ? 'Salvando…'
+    : dirty
+      ? 'Alterações não salvas'
+      : lastSavedAt
+        ? `Salvo às ${lastSavedAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
+        : id
+          ? 'Tudo salvo'
+          : 'Ainda não salvo';
+
+  const checklist = [
+    { ok: !!subject.trim(), label: 'Assunto preenchido', required: true, go: () => scrollToField('field-subject') },
+    { ok: hasContent, label: 'Conteúdo escrito', required: true, go: () => scrollToField('field-content') },
+    { ok: previewed, label: 'Prévia conferida', go: handlePreview },
+    { ok: testSent, label: 'Teste enviado e conferido', go: () => scrollToField('field-test-email') },
+  ];
+
   return (
     <AdminLayout title={id ? 'Editar newsletter' : 'Nova newsletter'} adminUser={adminUser}>
+      <div className="edit-bar">
+        <span className={`save-status${dirty ? ' dirty' : ''}`}>{saveLabel}</span>
+        <div className="edit-bar-actions">
+          <button className="admin-btn secondary" onClick={saveDraft} disabled={saving}>
+            Salvar
+          </button>
+          <button className="admin-btn secondary" onClick={handlePreview}>
+            👁 Visualizar
+          </button>
+          <button className="admin-btn secondary" onClick={() => scrollToField('send-section')}>
+            Ir para o envio ↓
+          </button>
+        </div>
+      </div>
+
       {status !== 'draft' && (
         <div className="admin-alert" style={{ marginBottom: 20 }}>
-          Status atual: <strong>{status}</strong>
+          Status atual: <strong>{STATUS_LABEL[status] || status}</strong>
           {status === 'sent' && ' — esta newsletter já foi enviada e não pode ser reenviada por aqui.'}
         </div>
       )}
 
-      {error && <div className="admin-alert error">{error}</div>}
-      {message && <div className="admin-alert success">{message}</div>}
+      <div className="toast-area">
+        {error && (
+          <div className="admin-alert error toast">
+            <span>{error}</span>
+            <button type="button" onClick={() => setError('')} aria-label="Fechar aviso">×</button>
+          </div>
+        )}
+        {message && (
+          <div className="admin-alert success toast">
+            <span>{message}</span>
+            <button type="button" onClick={() => setMessage('')} aria-label="Fechar aviso">×</button>
+          </div>
+        )}
+      </div>
 
       <div className="guide-box">
         <button type="button" className="guide-title" onClick={toggleGuide}>
@@ -394,18 +577,16 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
         {showGuide && (
           <ol>
             <li>
-              <strong>Passo 1 — Informações básicas.</strong> Título interno é só pra você organizar (o leitor não vê).
-              Assunto e pré-header são o que aparece na caixa de entrada do leitor, antes de abrir o e-mail.
+              <strong>Passo 1 — Informações básicas.</strong> Só o <strong>assunto</strong> é obrigatório. Ele e o
+              pré-header aparecem na caixa de entrada do leitor — logo abaixo você vê uma simulação.
             </li>
             <li>
-              <strong>Passo 2 — Escreva o conteúdo.</strong> Use a barra de botões acima da caixa de texto pra inserir
-              título, imagem, link, botão etc. — sem precisar saber código. Cada grupo de botões tem uma etiqueta
-              dizendo pra que serve.
+              <strong>Passo 2 — Escreva o conteúdo.</strong> Digite direto na caixa. Para colocar link, imagem ou
+              botão, use os botões acima dela: cada um abre uma janelinha que pergunta o que precisa.
             </li>
             <li>
-              <strong>Passo 3 — Confira e envie.</strong> Clique em <strong>Visualizar</strong> pra ver como vai
-              chegar no e-mail. Depois mande um <strong>teste</strong> pro seu próprio e-mail. Só depois de conferir
-              o teste, use <strong>Agendar / Enviar</strong> pra mandar de verdade pros assinantes.
+              <strong>Passo 3 — Confira e envie.</strong> Siga a lista: veja a prévia, mande um teste pra você e só
+              então use <strong>Agendar / Enviar</strong>.
             </li>
           </ol>
         )}
@@ -420,69 +601,88 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
           </div>
         </div>
 
-        <div className="form-row">
-          <div className="form-field">
-            <label>Título interno</label>
-            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Sem Mimimi — Edição #48" />
-            <div className="field-hint">Só organização sua — o assinante nunca vê isso.</div>
-          </div>
-          <div className="form-field">
-            <label>Assunto do e-mail (A)</label>
-            <input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="O que ninguém te contou sobre..." />
-            <div className="field-hint">
-              <b>Aparece em negrito</b> na lista de e-mails do leitor, antes de ele clicar.
-            </div>
+        <div className="form-field">
+          <label htmlFor="field-subject">Assunto do e-mail (A) *</label>
+          <input id="field-subject" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="O que ninguém te contou sobre..." />
+          <Counter value={subject} ideal={60} />
+        </div>
+
+        <div className="form-field">
+          <label htmlFor="field-preheader">Pré-header (opcional)</label>
+          <input id="field-preheader" value={preheader} onChange={(e) => setPreheader(e.target.value)} placeholder="Uma frase curta que complementa o assunto" />
+          <Counter value={preheader} ideal={100} />
+        </div>
+
+        <div className="inbox-preview" aria-label="Simulação da caixa de entrada">
+          <span className="inbox-tag">Assim aparece na caixa de entrada do leitor</span>
+          <div className="inbox-row">
+            <span className="inbox-sender">Sem Mimimi</span>
+            <span className="inbox-line">
+              <b>{subject.trim() || 'Seu assunto aparece aqui'}</b>
+              {preheader.trim() && <span className="inbox-pre"> — {preheader.trim()}</span>}
+            </span>
           </div>
         </div>
 
         <div className="form-field">
-          <label>Assunto B (opcional — ativa teste A/B)</label>
-          <input value={subjectB} onChange={(e) => setSubjectB(e.target.value)} placeholder="Deixe em branco para enviar só a variante A" />
-          <div className="field-hint">
-            Deixe em branco se não quiser testar duas versões. Se preencher, metade dos assinantes recebe o assunto A
-            e metade recebe o B — o resultado fica registrado por variante em <strong>Envios</strong>.
-          </div>
-        </div>
-
-        <div className="form-field">
-          <label>Pré-header</label>
-          <input value={preheader} onChange={(e) => setPreheader(e.target.value)} placeholder="Aparece ao lado do assunto na caixa de entrada" />
-          <div className="field-hint">
-            <b>Aparece em cinza</b>, logo depois do assunto, na mesma linha da caixa de entrada.
-          </div>
-        </div>
-
-        <div className="form-field">
-          <label>Por que isso importa (1 tópico por linha)</label>
+          <label htmlFor="field-why">Por que isso importa (opcional — 1 tópico por linha)</label>
           <textarea
+            id="field-why"
             rows={3}
             value={whyItMatters}
             onChange={(e) => setWhyItMatters(e.target.value)}
             placeholder={'O STF suspendeu o julgamento mais importante do ano\nUm banqueiro preso deixou 52 mensagens que ninguém explicou\nVocê não vai ver isso resumido em nenhum outro lugar'}
           />
           <div className="field-hint">
-            <b>Vira um quadro em destaque</b> logo no topo do e-mail, antes do leitor decidir se continua lendo. Uma
-            frase por linha.
+            <b>Vira um quadro em destaque</b> no topo do e-mail. Uma frase por linha. Pode deixar em branco.
           </div>
         </div>
 
         <div className="form-field">
-          <label>Imagem principal</label>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-            <input
-              style={{ flex: 1, minWidth: 220 }}
-              value={heroImageUrl}
-              onChange={(e) => setHeroImageUrl(e.target.value)}
-              placeholder="https://... ou envie um arquivo →"
-            />
-            <input type="file" accept="image/*" onChange={handleImageUpload} />
-          </div>
+          <label>Imagem principal (opcional)</label>
+          {heroImageUrl ? (
+            <div className="hero-preview">
+              <img src={heroImageUrl} alt="" />
+              <button type="button" className="admin-btn secondary" onClick={() => setHeroImageUrl('')}>
+                Remover imagem
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+              <label className="admin-btn secondary" style={{ margin: 0, cursor: 'pointer' }}>
+                {uploading ? 'Enviando…' : '📁 Escolher imagem do computador'}
+                <input type="file" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} disabled={uploading} />
+              </label>
+              <span className="field-hint" style={{ margin: 0 }}>ou cole um link:</span>
+              <input
+                style={{ flex: 1, minWidth: 220 }}
+                value={heroImageUrl}
+                onChange={(e) => setHeroImageUrl(e.target.value)}
+                placeholder="https://..."
+              />
+            </div>
+          )}
           <div className="field-hint">
-            <b>Aparece bem no topo do e-mail</b>, em largura total, antes do título. Cole um link ou escolha um
-            arquivo do seu computador.
+            <b>Aparece no topo do e-mail</b>, em largura total, antes do título.
           </div>
-          {heroImageUrl && <img src={heroImageUrl} alt="" style={{ maxWidth: 260, marginTop: 10, display: 'block' }} />}
         </div>
+
+        <details className="more-options">
+          <summary>Opções avançadas (título interno e teste A/B)</summary>
+          <div className="form-field" style={{ marginTop: 14 }}>
+            <label htmlFor="field-title">Título interno</label>
+            <input id="field-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Se deixar em branco, usamos o assunto" />
+            <div className="field-hint">Só pra você se organizar na lista de newsletters — o assinante nunca vê.</div>
+          </div>
+          <div className="form-field">
+            <label htmlFor="field-subject-b">Assunto B (ativa teste A/B)</label>
+            <input id="field-subject-b" value={subjectB} onChange={(e) => setSubjectB(e.target.value)} placeholder="Deixe em branco para enviar só o assunto A" />
+            <div className="field-hint">
+              Se preencher, metade dos assinantes recebe o assunto A e metade o B. O resultado de cada um fica em{' '}
+              <strong>Envios</strong>.
+            </div>
+          </div>
+        </details>
       </div>
 
       <div className="step-section">
@@ -491,53 +691,62 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
           <div>
             <h2>Escreva o conteúdo</h2>
             <p>
-              O corpo do e-mail. Selecione um texto pra formatar, ou clique num botão pra inserir um bloco novo onde
-              o cursor estiver — ⏱️ leitura estimada de {readingMinutes} min.
+              O corpo do e-mail. Digite direto na caixa
+              {readingMinutes > 0 ? ` — ⏱️ leitura estimada: ${readingMinutes} min.` : '.'}
             </p>
           </div>
         </div>
 
-        <div className="editor-toolbar">
+        <div className="editor-toolbar" onMouseDown={(e) => { if (e.target.closest('button')) e.preventDefault(); }}>
           <div className="toolbar-group">
-            <span className="toolbar-label">Texto</span>
+            <span className="toolbar-label">Formatar texto</span>
             <div className="toolbar-buttons">
-              <button type="button" onClick={() => exec('bold')} title="Negrito"><strong>N</strong></button>
-              <button type="button" onClick={() => exec('italic')} title="Itálico"><em>I</em></button>
-              <button type="button" onClick={() => exec('formatBlock', 'H2')}>Título</button>
-              <button type="button" onClick={() => exec('formatBlock', 'H3')}>Subtítulo</button>
-              <button type="button" onClick={() => exec('formatBlock', 'P')}>Parágrafo</button>
-              <button type="button" onClick={() => exec('justifyLeft')}>Esq.</button>
-              <button type="button" onClick={() => exec('justifyCenter')}>Centro</button>
+              <button type="button" onClick={() => exec('bold')} title="Negrito: deixa o texto selecionado mais forte"><strong>N</strong></button>
+              <button type="button" onClick={() => exec('italic')} title="Itálico: deixa o texto selecionado inclinado"><em>I</em></button>
+              <button type="button" onClick={() => exec('formatBlock', 'H2')} title="Transforma a linha em título grande">Título</button>
+              <button type="button" onClick={() => exec('formatBlock', 'H3')} title="Transforma a linha em título menor">Subtítulo</button>
+              <button type="button" onClick={() => exec('formatBlock', 'P')} title="Volta a linha para texto comum">Texto normal</button>
+              <button type="button" onClick={() => exec('justifyLeft')} title="Alinhar à esquerda">⬅ Esquerda</button>
+              <button type="button" onClick={() => exec('justifyCenter')} title="Centralizar">↔ Centro</button>
             </div>
           </div>
 
           <div className="toolbar-group">
-            <span className="toolbar-label">Blocos</span>
+            <span className="toolbar-label">Organizar</span>
             <div className="toolbar-buttons">
-              <button type="button" onClick={() => exec('insertUnorderedList')}>Lista</button>
-              <button type="button" onClick={() => exec('insertOrderedList')}>Lista numerada</button>
-              <button type="button" onClick={handleSeparator}>Separador</button>
-              <button type="button" onClick={handleQuote}>Citação</button>
-              <button type="button" onClick={handleDestaque}>Destaque</button>
+              <button type="button" onClick={() => exec('insertUnorderedList')} title="Lista com bolinhas">• Lista</button>
+              <button type="button" onClick={() => exec('insertOrderedList')} title="Lista com números">1. Lista numerada</button>
+              <button type="button" onClick={handleSeparator} title="Linha para separar assuntos">— Linha</button>
+              <button type="button" onClick={handleQuote} title="Trecho citado, com barra lateral">❝ Citação</button>
+              <button type="button" onClick={handleDestaque} title="Caixa colorida para o resumo">▣ Caixa de destaque</button>
             </div>
           </div>
 
           <div className="toolbar-group">
-            <span className="toolbar-label">Link, imagem e vídeo</span>
+            <span className="toolbar-label">Inserir</span>
             <div className="toolbar-buttons">
-              <button type="button" className="highlight" onClick={handleLink}>🔗 Link</button>
-              <button type="button" onClick={handleButton}>Botão</button>
-              <button type="button" onClick={handleImage}>Imagem</button>
-              <button type="button" onClick={handleImageUrl} title="Colar link de uma imagem já hospedada em outro lugar">URL de imagem</button>
-              <button type="button" onClick={handleYoutube}>▶ YouTube</button>
+              <button type="button" className="highlight" onClick={() => openDialog('link')} title="Transforma um texto em link clicável">🔗 Link</button>
+              <button type="button" onClick={() => openDialog('button')} title="Botão grande e clicável (ex.: 'Leia a matéria')">🔘 Botão</button>
+              <button type="button" onClick={() => openDialog('image')} title="Foto ou imagem dentro do texto">🖼 Imagem</button>
+              <button type="button" onClick={() => openDialog('youtube')} title="Vídeo do YouTube com miniatura clicável">▶ Vídeo</button>
+              <button type="button" onClick={handleNomeLeitor} title="Coloca o nome de cada assinante (vira 'Olá.' se ele não tiver nome)">👤 Nome do leitor</button>
             </div>
           </div>
         </div>
-        <div className="field-hint" style={{ marginTop: 0 }}>
-          <b>Para o Link:</b> se você já escreveu o texto, selecione-o antes de clicar em 🔗 Link. Se ainda não
-          escreveu, clique direto — a gente pergunta o texto e a URL e insere os dois juntos, prontos.
-        </div>
-        <div ref={editorRef} className="editor-canvas" contentEditable suppressContentEditableWarning onInput={updateReadingTime} onBlur={updateReadingTime} onMouseUp={saveSelection} onKeyUp={saveSelection} />
+        <div
+          id="field-content"
+          ref={editorRef}
+          className="editor-canvas"
+          contentEditable
+          suppressContentEditableWarning
+          data-placeholder="Clique aqui e comece a escrever. Para formatar, selecione o texto e use os botões acima."
+          tabIndex={0}
+          onInput={() => { markDirty(); updateReadingTime(); }}
+          onBlur={updateReadingTime}
+          onPaste={handlePaste}
+          onMouseUp={saveSelection}
+          onKeyUp={saveSelection}
+        />
         <input
           type="file"
           accept="image/*"
@@ -545,45 +754,66 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
           onChange={handleContentImageUpload}
           style={{ display: 'none' }}
         />
-        <div className="trust-note" style={{ marginTop: 8 }}>
-          Use {'{{nome}}'} em qualquer lugar do texto para personalizar com o nome do assinante (vira &quot;Olá.&quot; se ele não informou nome).
-        </div>
       </div>
 
-      <div className="step-section">
+      <div className="step-section" id="send-section">
         <div className="step-head">
           <span className="step-num">3</span>
           <div>
             <h2>Confira e envie</h2>
-            <p>Visualize, mande um teste pra você mesmo e só depois envie pra valer.</p>
+            <p>Siga a lista de cima para baixo. Cada item vira ✓ quando você faz.</p>
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          <button className="admin-btn secondary" onClick={saveDraft} disabled={saving}>
-            {saving ? 'Salvando…' : 'Salvar rascunho'}
-          </button>
-          <button className="admin-btn secondary" onClick={handlePreview}>
-            👁 Visualizar
-          </button>
-          <button className="admin-btn" onClick={openSendConfirm} disabled={status === 'sent'}>
-            Agendar / Enviar
-          </button>
-        </div>
-
-        <div style={{ marginTop: 24, maxWidth: 420 }}>
-          <div className="form-field">
-            <label>Enviar teste para</label>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <input type="email" value={testEmail} onChange={(e) => setTestEmail(e.target.value)} placeholder="seuemail@email.com" />
-              <button className="admin-btn secondary" onClick={handleSendTest} disabled={sendingTest || !testEmail}>
-                {sendingTest ? 'Enviando…' : 'Enviar teste'}
+        <ul className="checklist">
+          {checklist.map((item) => (
+            <li key={item.label} className={item.ok ? 'ok' : ''}>
+              <span className="check-mark">{item.ok ? '✓' : '○'}</span>
+              <button type="button" className="check-label" onClick={item.go}>
+                {item.label}
               </button>
+              {!item.required && !item.ok && <span className="check-tag">recomendado</span>}
+            </li>
+          ))}
+        </ul>
+
+        <div className="send-steps">
+          <div className="send-step">
+            <div>
+              <strong>A. Veja como fica</strong>
+              <p>Abre a prévia exatamente como o leitor vai receber.</p>
             </div>
-            <div className="field-hint">
-              Recomendado antes de todo envio: manda essa mesma edição só pra um e-mail, pra você conferir antes de
-              mandar pros assinantes de verdade.
+            <button className="admin-btn secondary" onClick={handlePreview}>👁 Visualizar</button>
+          </div>
+
+          <div className="send-step">
+            <div style={{ flex: 1 }}>
+              <strong>B. Mande um teste pra você</strong>
+              <p>Já deixamos o seu e-mail preenchido. Confira no celular também.</p>
+              <div style={{ display: 'flex', gap: 8, maxWidth: 460 }}>
+                <input
+                  id="field-test-email"
+                  type="email"
+                  value={testEmail}
+                  onChange={(e) => setTestEmail(e.target.value)}
+                  placeholder="seuemail@email.com"
+                  style={{ flex: 1, padding: '11px 12px', border: '1px solid var(--line)', background: 'var(--bg)', fontSize: '.98rem' }}
+                />
+                <button className="admin-btn secondary" onClick={handleSendTest} disabled={sendingTest}>
+                  {sendingTest ? 'Enviando…' : 'Enviar teste'}
+                </button>
+              </div>
             </div>
+          </div>
+
+          <div className="send-step primary">
+            <div>
+              <strong>C. Envie para os assinantes</strong>
+              <p>Você ainda poderá revisar tudo antes de confirmar.</p>
+            </div>
+            <button className="admin-btn" onClick={openSendConfirm} disabled={status === 'sent' || saving}>
+              Agendar / Enviar
+            </button>
           </div>
         </div>
       </div>
@@ -591,6 +821,74 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
       {showPreview && (
         <Modal onClose={() => setShowPreview(false)} title="Prévia do e-mail">
           <iframe title="preview" srcDoc={previewHtml} style={{ width: '100%', height: '70vh', border: '1px solid var(--line)', background: '#fff' }} />
+        </Modal>
+      )}
+
+      {dialog && (
+        <Modal onClose={() => { setDialog(null); setError(''); }} title={DIALOG_TITLES[dialog.type]}>
+          {dialog.type === 'image' && (
+            <div className="form-field">
+              <label>Opção 1 — foto do seu computador</label>
+              <button type="button" className="admin-btn" onClick={() => contentImageInputRef.current?.click()} disabled={uploading}>
+                {uploading ? 'Enviando…' : '📁 Escolher foto'}
+              </button>
+              <div className="field-hint">A foto entra no texto, onde o cursor estava.</div>
+            </div>
+          )}
+          {dialog.type === 'link' && (
+            <>
+              <div className="form-field">
+                <label htmlFor="dlg-url">Para onde o link leva?</label>
+                <input id="dlg-url" autoFocus value={dialog.values.url} onChange={(e) => setDialogValue('url', e.target.value)} placeholder="https://..." onKeyDown={dlgEnter(submitDialog)} />
+                <div className="field-hint">Cole o endereço do site. Se esquecer o https://, a gente coloca.</div>
+              </div>
+              {!dialog.hasSel && (
+                <div className="form-field">
+                  <label htmlFor="dlg-text">Texto que o leitor vai clicar</label>
+                  <input id="dlg-text" value={dialog.values.text} onChange={(e) => setDialogValue('text', e.target.value)} onKeyDown={dlgEnter(submitDialog)} />
+                </div>
+              )}
+              {dialog.hasSel && <div className="field-hint" style={{ marginBottom: 16 }}>O texto que você selecionou vai virar o link.</div>}
+            </>
+          )}
+          {dialog.type === 'button' && (
+            <>
+              <div className="form-field">
+                <label htmlFor="dlg-btn-text">O que está escrito no botão?</label>
+                <input id="dlg-btn-text" autoFocus value={dialog.values.text} onChange={(e) => setDialogValue('text', e.target.value)} onKeyDown={dlgEnter(submitDialog)} />
+              </div>
+              <div className="form-field">
+                <label htmlFor="dlg-url">Para onde o botão leva?</label>
+                <input id="dlg-url" value={dialog.values.url} onChange={(e) => setDialogValue('url', e.target.value)} placeholder="https://..." onKeyDown={dlgEnter(submitDialog)} />
+              </div>
+            </>
+          )}
+          {dialog.type === 'image' && (
+            <div className="form-field">
+              <label htmlFor="dlg-url">Opção 2 — imagem que já está na internet</label>
+              <input id="dlg-url" value={dialog.values.url} onChange={(e) => setDialogValue('url', e.target.value)} placeholder="https://..." onKeyDown={dlgEnter(submitDialog)} />
+            </div>
+          )}
+          {dialog.type === 'youtube' && (
+            <>
+              <div className="form-field">
+                <label htmlFor="dlg-url">Link do vídeo no YouTube</label>
+                <input id="dlg-url" autoFocus value={dialog.values.url} onChange={(e) => setDialogValue('url', e.target.value)} placeholder="https://www.youtube.com/watch?v=..." onKeyDown={dlgEnter(submitDialog)} />
+              </div>
+              <div className="form-field">
+                <label htmlFor="dlg-yt-title">Chamada acima do vídeo</label>
+                <input id="dlg-yt-title" value={dialog.values.title} onChange={(e) => setDialogValue('title', e.target.value)} onKeyDown={dlgEnter(submitDialog)} />
+              </div>
+            </>
+          )}
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button className="admin-btn" onClick={submitDialog}>
+              {dialog.type === 'image' ? 'Inserir pelo link' : 'Inserir'}
+            </button>
+            <button className="admin-btn secondary" onClick={() => { setDialog(null); setError(''); }}>
+              Cancelar
+            </button>
+          </div>
         </Modal>
       )}
 
@@ -613,15 +911,32 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
             </li>
           </ul>
 
-          <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', marginBottom: 20 }}>
+          {(!testSent || !previewed) && (
+            <div className="admin-alert" style={{ marginBottom: 20 }}>
+              ⚠️ Atenção:{' '}
+              {!testSent && !previewed
+                ? 'você ainda não viu a prévia nem mandou um teste desta versão.'
+                : !testSent
+                  ? 'você ainda não mandou um teste desta versão.'
+                  : 'você ainda não viu a prévia desta versão.'}{' '}
+              Recomendamos fechar esta janela e conferir antes.
+            </div>
+          )}
+
+          <div style={{ marginBottom: 20 }}>
             <button className="admin-btn danger" onClick={confirmSendNow} disabled={sending}>
-              {sending ? 'Enviando…' : 'Confirmar envio agora'}
+              {sending ? 'Enviando…' : `Enviar agora para ${recipientCountPreview} assinantes`}
             </button>
           </div>
 
           <div style={{ borderTop: '1px solid var(--line)', paddingTop: 18 }}>
             <div className="form-field">
               <label>Ou agendar para</label>
+              <div className="quick-times">
+                <button type="button" className="admin-btn secondary" onClick={() => pickQuickTime(8, 1)}>Amanhã 8h</button>
+                <button type="button" className="admin-btn secondary" onClick={() => pickQuickTime(12, 1)}>Amanhã 12h</button>
+                <button type="button" className="admin-btn secondary" onClick={() => pickQuickTime(18, 1)}>Amanhã 18h</button>
+              </div>
               <input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} />
             </div>
             <button className="admin-btn secondary" onClick={confirmSchedule} disabled={sending}>
@@ -632,6 +947,54 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
       )}
     </AdminLayout>
   );
+}
+
+function Counter({ value, ideal }) {
+  const n = value.length;
+  return (
+    <div className={`char-counter${n > ideal ? ' over' : ''}`}>
+      {n}/{ideal} caracteres{n > ideal ? ' — pode ser cortado em alguns celulares' : ''}
+    </div>
+  );
+}
+
+const STATUS_LABEL = { draft: 'rascunho', scheduled: 'agendada', sending: 'enviando', sent: 'enviada' };
+const DIALOG_TITLES = { link: 'Inserir link', button: 'Inserir botão', image: 'Inserir imagem', youtube: 'Inserir vídeo do YouTube' };
+
+function dlgEnter(fn) {
+  return (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      fn();
+    }
+  };
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function escapeAttr(str) {
+  return escapeHtml(str).replace(/"/g, '&quot;');
+}
+function normalizeUrl(raw) {
+  const v = (raw || '').trim();
+  if (!v) return '';
+  if (/^(https?:\/\/|mailto:)/i.test(v)) return v;
+  return 'https://' + v;
+}
+function safeFileName(name) {
+  const dot = name.lastIndexOf('.');
+  const ext = dot > -1 ? name.slice(dot).toLowerCase().replace(/[^a-z0-9.]/g, '') : '';
+  const base = (dot > -1 ? name.slice(0, dot) : name)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9_-]+/g, '-')
+    .slice(0, 40);
+  return (base || 'imagem') + ext;
+}
+function toLocalInput(d) {
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 function Modal({ title, onClose, children }) {
