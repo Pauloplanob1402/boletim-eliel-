@@ -59,6 +59,26 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
   const [recipientCountPreview, setRecipientCountPreview] = useState(null);
   const [sending, setSending] = useState(false);
 
+  const [showGuide, setShowGuide] = useState(true);
+  useEffect(() => {
+    try {
+      setShowGuide(window.localStorage.getItem('sm_hide_newsletter_guide') !== '1');
+    } catch {
+      // localStorage indisponível (ex.: modo privado) — deixa o guia visível.
+    }
+  }, []);
+  function toggleGuide() {
+    setShowGuide((prev) => {
+      const next = !prev;
+      try {
+        window.localStorage.setItem('sm_hide_newsletter_guide', next ? '0' : '1');
+      } catch {
+        // ignora
+      }
+      return next;
+    });
+  }
+
   useEffect(() => {
     if (editorRef.current && initialNewsletter?.content_html) {
       editorRef.current.innerHTML = initialNewsletter.content_html;
@@ -96,8 +116,22 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
   }
 
   function handleLink() {
-    const url = window.prompt('URL do link:');
-    if (url) exec('createLink', url);
+    const sel = window.getSelection();
+    const hasTextSelected =
+      sel && sel.rangeCount > 0 && !sel.isCollapsed && editorRef.current && editorRef.current.contains(sel.anchorNode);
+
+    const url = window.prompt('Para onde esse link deve levar? (cole a URL completa, começando com https://)');
+    if (!url) return;
+
+    if (hasTextSelected) {
+      // Já tem um texto selecionado no editor: só transforma esse texto em link.
+      exec('createLink', url);
+    } else {
+      // Nada selecionado: pergunta o texto e insere já como link, no lugar do cursor.
+      const texto = window.prompt('Qual texto deve aparecer sublinhado, clicável, no e-mail?', 'clique aqui');
+      if (!texto) return;
+      insertHtml(`<a href="${url}" style="color:#d9591a; text-decoration:underline;">${texto}</a>`);
+    }
   }
 
   function handleImageUrl() {
@@ -352,89 +386,156 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
       {error && <div className="admin-alert error">{error}</div>}
       {message && <div className="admin-alert success">{message}</div>}
 
-      <div className="form-row">
+      <div className="guide-box">
+        <button type="button" className="guide-title" onClick={toggleGuide}>
+          <span>💡 Como preencher esta página (3 passos)</span>
+          <span>{showGuide ? 'ocultar' : 'mostrar'}</span>
+        </button>
+        {showGuide && (
+          <ol>
+            <li>
+              <strong>Passo 1 — Informações básicas.</strong> Título interno é só pra você organizar (o leitor não vê).
+              Assunto e pré-header são o que aparece na caixa de entrada do leitor, antes de abrir o e-mail.
+            </li>
+            <li>
+              <strong>Passo 2 — Escreva o conteúdo.</strong> Use a barra de botões acima da caixa de texto pra inserir
+              título, imagem, link, botão etc. — sem precisar saber código. Cada grupo de botões tem uma etiqueta
+              dizendo pra que serve.
+            </li>
+            <li>
+              <strong>Passo 3 — Confira e envie.</strong> Clique em <strong>Visualizar</strong> pra ver como vai
+              chegar no e-mail. Depois mande um <strong>teste</strong> pro seu próprio e-mail. Só depois de conferir
+              o teste, use <strong>Agendar / Enviar</strong> pra mandar de verdade pros assinantes.
+            </li>
+          </ol>
+        )}
+      </div>
+
+      <div className="step-section">
+        <div className="step-head">
+          <span className="step-num">1</span>
+          <div>
+            <h2>Informações básicas</h2>
+            <p>O que o leitor vê antes mesmo de abrir o e-mail.</p>
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-field">
+            <label>Título interno</label>
+            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Sem Mimimi — Edição #48" />
+            <div className="field-hint">Só organização sua — o assinante nunca vê isso.</div>
+          </div>
+          <div className="form-field">
+            <label>Assunto do e-mail (A)</label>
+            <input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="O que ninguém te contou sobre..." />
+            <div className="field-hint">
+              <b>Aparece em negrito</b> na lista de e-mails do leitor, antes de ele clicar.
+            </div>
+          </div>
+        </div>
+
         <div className="form-field">
-          <label>Título interno</label>
-          <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Sem Mimimi — Edição #48" />
+          <label>Assunto B (opcional — ativa teste A/B)</label>
+          <input value={subjectB} onChange={(e) => setSubjectB(e.target.value)} placeholder="Deixe em branco para enviar só a variante A" />
+          <div className="field-hint">
+            Deixe em branco se não quiser testar duas versões. Se preencher, metade dos assinantes recebe o assunto A
+            e metade recebe o B — o resultado fica registrado por variante em <strong>Envios</strong>.
+          </div>
         </div>
+
         <div className="form-field">
-          <label>Assunto do e-mail (A)</label>
-          <input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="O que ninguém te contou sobre..." />
+          <label>Pré-header</label>
+          <input value={preheader} onChange={(e) => setPreheader(e.target.value)} placeholder="Aparece ao lado do assunto na caixa de entrada" />
+          <div className="field-hint">
+            <b>Aparece em cinza</b>, logo depois do assunto, na mesma linha da caixa de entrada.
+          </div>
         </div>
-      </div>
 
-      <div className="form-field">
-        <label>Assunto B (opcional — ativa teste A/B)</label>
-        <input value={subjectB} onChange={(e) => setSubjectB(e.target.value)} placeholder="Deixe em branco para enviar só a variante A" />
-        <div style={{ marginTop: 8, fontSize: '.82rem', color: 'var(--dim)', lineHeight: 1.6 }}>
-          Checklist antes de enviar: tem menos de 50 caracteres? Gera curiosidade sem ser clickbait vazio? É direto,
-          sem enrolação? Se preencher os dois assuntos, metade dos assinantes recebe A e metade recebe B — o
-          resultado (enquete de fim de edição) fica registrado por variante em <strong>Envios</strong>.
-        </div>
-      </div>
-
-      <div className="form-field">
-        <label>Pré-header</label>
-        <input value={preheader} onChange={(e) => setPreheader(e.target.value)} placeholder="Aparece ao lado do assunto na caixa de entrada" />
-      </div>
-
-      <div className="form-field">
-        <label>Por que isso importa (Smart Brevity — 1 tópico por linha)</label>
-        <textarea
-          rows={3}
-          value={whyItMatters}
-          onChange={(e) => setWhyItMatters(e.target.value)}
-          placeholder={'O STF suspendeu o julgamento mais importante do ano\nUm banqueiro preso deixou 52 mensagens que ninguém explicou\nVocê não vai ver isso resumido em nenhum outro lugar'}
-        />
-        <div className="trust-note" style={{ marginTop: 6 }}>
-          Vira um bloco em destaque no topo do e-mail, logo abaixo do título — antes do leitor decidir se vale a
-          pena continuar lendo.
-        </div>
-      </div>
-
-      <div className="form-field">
-        <label>Imagem principal</label>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-          <input
-            style={{ flex: 1, minWidth: 220 }}
-            value={heroImageUrl}
-            onChange={(e) => setHeroImageUrl(e.target.value)}
-            placeholder="https://... ou envie um arquivo →"
+        <div className="form-field">
+          <label>Por que isso importa (1 tópico por linha)</label>
+          <textarea
+            rows={3}
+            value={whyItMatters}
+            onChange={(e) => setWhyItMatters(e.target.value)}
+            placeholder={'O STF suspendeu o julgamento mais importante do ano\nUm banqueiro preso deixou 52 mensagens que ninguém explicou\nVocê não vai ver isso resumido em nenhum outro lugar'}
           />
-          <input type="file" accept="image/*" onChange={handleImageUpload} />
+          <div className="field-hint">
+            <b>Vira um quadro em destaque</b> logo no topo do e-mail, antes do leitor decidir se continua lendo. Uma
+            frase por linha.
+          </div>
         </div>
-        {heroImageUrl && <img src={heroImageUrl} alt="" style={{ maxWidth: 260, marginTop: 10, display: 'block' }} />}
+
+        <div className="form-field">
+          <label>Imagem principal</label>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+            <input
+              style={{ flex: 1, minWidth: 220 }}
+              value={heroImageUrl}
+              onChange={(e) => setHeroImageUrl(e.target.value)}
+              placeholder="https://... ou envie um arquivo →"
+            />
+            <input type="file" accept="image/*" onChange={handleImageUpload} />
+          </div>
+          <div className="field-hint">
+            <b>Aparece bem no topo do e-mail</b>, em largura total, antes do título. Cole um link ou escolha um
+            arquivo do seu computador.
+          </div>
+          {heroImageUrl && <img src={heroImageUrl} alt="" style={{ maxWidth: 260, marginTop: 10, display: 'block' }} />}
+        </div>
       </div>
 
-      <div className="form-field">
-        <label>
-          Conteúdo{' '}
-          <span style={{ textTransform: 'none', fontFamily: 'var(--body)', color: 'var(--dim)', fontWeight: 400 }}>
-            — ⏱️ leitura estimada de {readingMinutes} min
-          </span>
-        </label>
-        <div className="editor-toolbar">
-          <button type="button" onClick={() => exec('bold')}><strong>N</strong></button>
-          <button type="button" onClick={() => exec('italic')}><em>I</em></button>
-          <button type="button" onClick={() => exec('formatBlock', 'H2')}>Título</button>
-          <button type="button" onClick={() => exec('formatBlock', 'H3')}>Subtítulo</button>
-          <button type="button" onClick={() => exec('formatBlock', 'P')}>Parágrafo</button>
-          <button type="button" onClick={() => exec('insertUnorderedList')}>Lista</button>
-          <button type="button" onClick={() => exec('insertOrderedList')}>Lista numerada</button>
-          <button type="button" onClick={handleLink}>Link</button>
-          <button type="button" onClick={handleButton}>Botão</button>
-          <button type="button" onClick={handleImage}>Imagem</button>
-          <button type="button" onClick={handleImageUrl} title="Colar link de uma imagem já hospedada em outro lugar">URL de imagem</button>
-          <button type="button" onClick={handleSeparator}>Separador</button>
-          <button type="button" onClick={handleQuote}>Citação</button>
-          <button type="button" onClick={handleDestaque}>Destaque</button>
-          <button type="button" onClick={() => exec('justifyLeft')}>Esq.</button>
-          <button type="button" onClick={() => exec('justifyCenter')}>Centro</button>
-          <button type="button" onClick={handleYoutube}>▶ YouTube</button>
+      <div className="step-section">
+        <div className="step-head">
+          <span className="step-num">2</span>
+          <div>
+            <h2>Escreva o conteúdo</h2>
+            <p>
+              O corpo do e-mail. Selecione um texto pra formatar, ou clique num botão pra inserir um bloco novo onde
+              o cursor estiver — ⏱️ leitura estimada de {readingMinutes} min.
+            </p>
+          </div>
         </div>
-        <div style={{ fontSize: '.78rem', color: 'var(--dim)', margin: '6px 0 0' }}>
-          Selecione um texto pra formatar (negrito, itálico, título...) ou clique num botão pra inserir um bloco novo
-          onde o cursor estiver — imagem e vídeo vão pelo upload/link, sem precisar mexer em código.
+
+        <div className="editor-toolbar">
+          <div className="toolbar-group">
+            <span className="toolbar-label">Texto</span>
+            <div className="toolbar-buttons">
+              <button type="button" onClick={() => exec('bold')} title="Negrito"><strong>N</strong></button>
+              <button type="button" onClick={() => exec('italic')} title="Itálico"><em>I</em></button>
+              <button type="button" onClick={() => exec('formatBlock', 'H2')}>Título</button>
+              <button type="button" onClick={() => exec('formatBlock', 'H3')}>Subtítulo</button>
+              <button type="button" onClick={() => exec('formatBlock', 'P')}>Parágrafo</button>
+              <button type="button" onClick={() => exec('justifyLeft')}>Esq.</button>
+              <button type="button" onClick={() => exec('justifyCenter')}>Centro</button>
+            </div>
+          </div>
+
+          <div className="toolbar-group">
+            <span className="toolbar-label">Blocos</span>
+            <div className="toolbar-buttons">
+              <button type="button" onClick={() => exec('insertUnorderedList')}>Lista</button>
+              <button type="button" onClick={() => exec('insertOrderedList')}>Lista numerada</button>
+              <button type="button" onClick={handleSeparator}>Separador</button>
+              <button type="button" onClick={handleQuote}>Citação</button>
+              <button type="button" onClick={handleDestaque}>Destaque</button>
+            </div>
+          </div>
+
+          <div className="toolbar-group">
+            <span className="toolbar-label">Link, imagem e vídeo</span>
+            <div className="toolbar-buttons">
+              <button type="button" className="highlight" onClick={handleLink}>🔗 Link</button>
+              <button type="button" onClick={handleButton}>Botão</button>
+              <button type="button" onClick={handleImage}>Imagem</button>
+              <button type="button" onClick={handleImageUrl} title="Colar link de uma imagem já hospedada em outro lugar">URL de imagem</button>
+              <button type="button" onClick={handleYoutube}>▶ YouTube</button>
+            </div>
+          </div>
+        </div>
+        <div className="field-hint" style={{ marginTop: 0 }}>
+          <b>Para o Link:</b> se você já escreveu o texto, selecione-o antes de clicar em 🔗 Link. Se ainda não
+          escreveu, clique direto — a gente pergunta o texto e a URL e insere os dois juntos, prontos.
         </div>
         <div ref={editorRef} className="editor-canvas" contentEditable suppressContentEditableWarning onInput={updateReadingTime} onBlur={updateReadingTime} onMouseUp={saveSelection} onKeyUp={saveSelection} />
         <input
@@ -449,26 +550,40 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 28 }}>
-        <button className="admin-btn secondary" onClick={saveDraft} disabled={saving}>
-          {saving ? 'Salvando…' : 'Salvar rascunho'}
-        </button>
-        <button className="admin-btn secondary" onClick={handlePreview}>
-          Visualizar
-        </button>
-        <button className="admin-btn" onClick={openSendConfirm} disabled={status === 'sent'}>
-          Agendar / Enviar
-        </button>
-      </div>
+      <div className="step-section">
+        <div className="step-head">
+          <span className="step-num">3</span>
+          <div>
+            <h2>Confira e envie</h2>
+            <p>Visualize, mande um teste pra você mesmo e só depois envie pra valer.</p>
+          </div>
+        </div>
 
-      <div style={{ marginTop: 28, maxWidth: 420 }}>
-        <div className="form-field">
-          <label>Enviar teste para</label>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <input type="email" value={testEmail} onChange={(e) => setTestEmail(e.target.value)} placeholder="seuemail@email.com" />
-            <button className="admin-btn secondary" onClick={handleSendTest} disabled={sendingTest || !testEmail}>
-              {sendingTest ? 'Enviando…' : 'Enviar teste'}
-            </button>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          <button className="admin-btn secondary" onClick={saveDraft} disabled={saving}>
+            {saving ? 'Salvando…' : 'Salvar rascunho'}
+          </button>
+          <button className="admin-btn secondary" onClick={handlePreview}>
+            👁 Visualizar
+          </button>
+          <button className="admin-btn" onClick={openSendConfirm} disabled={status === 'sent'}>
+            Agendar / Enviar
+          </button>
+        </div>
+
+        <div style={{ marginTop: 24, maxWidth: 420 }}>
+          <div className="form-field">
+            <label>Enviar teste para</label>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input type="email" value={testEmail} onChange={(e) => setTestEmail(e.target.value)} placeholder="seuemail@email.com" />
+              <button className="admin-btn secondary" onClick={handleSendTest} disabled={sendingTest || !testEmail}>
+                {sendingTest ? 'Enviando…' : 'Enviar teste'}
+              </button>
+            </div>
+            <div className="field-hint">
+              Recomendado antes de todo envio: manda essa mesma edição só pra um e-mail, pra você conferir antes de
+              mandar pros assinantes de verdade.
+            </div>
           </div>
         </div>
       </div>

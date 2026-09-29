@@ -232,16 +232,43 @@ table.admin-table td.strong{ color:var(--ink); font-weight:600; }
 .checkbox-row{ display:flex; align-items:flex-start; gap:10px; font-size:.92rem; color:var(--dim); margin-bottom:16px; }
 .checkbox-row input{ margin-top:4px; }
 
-.editor-toolbar{ display:flex; gap:4px; flex-wrap:wrap; border:1px solid var(--line); border-bottom:none; background:var(--bg2); padding:8px; }
+.editor-toolbar{ display:flex; gap:16px; flex-wrap:wrap; border:1px solid var(--line); border-bottom:none; background:var(--bg2); padding:10px 12px; }
+.toolbar-group{ display:flex; flex-direction:column; gap:5px; }
+.toolbar-group .toolbar-label{ font-family:var(--mono); font-size:.6rem; text-transform:uppercase; letter-spacing:.05em; color:var(--dim); }
+.toolbar-group .toolbar-buttons{ display:flex; gap:4px; flex-wrap:wrap; }
 .editor-toolbar button{
   font-family:var(--mono); font-size:.72rem; text-transform:uppercase; background:var(--bg); border:1px solid var(--line);
   padding:7px 10px; cursor:pointer; color:var(--ink);
 }
 .editor-toolbar button:hover{ border-color:var(--red); color:var(--red); }
+.editor-toolbar button.highlight{ border-color:var(--red-dark); color:var(--red-dark); font-weight:700; }
 .editor-canvas{
   border:1px solid var(--line); min-height:360px; padding:20px; background:var(--bg); font-size:1rem; line-height:1.6;
 }
 .editor-canvas:focus{ outline:none; }
+
+/* ---- Guia visual de preenchimento (newsletter) ---- */
+.field-hint{ font-size:.8rem; color:var(--dim); margin-top:6px; line-height:1.5; }
+.field-hint b{ color:var(--ink); }
+
+.step-section{ margin:0 0 32px; padding-bottom:28px; border-bottom:1px dashed var(--line); }
+.step-section:last-of-type{ border-bottom:none; padding-bottom:0; }
+.step-head{ display:flex; align-items:center; gap:12px; margin-bottom:18px; }
+.step-num{
+  flex-shrink:0; width:28px; height:28px; border-radius:50%; background:var(--red-dark); color:var(--bg);
+  font-family:var(--mono); font-size:.8rem; font-weight:700; display:flex; align-items:center; justify-content:center;
+}
+.step-head h2{ font-family:var(--display); font-size:1.05rem; text-transform:uppercase; letter-spacing:.02em; margin:0; }
+.step-head p{ font-family:var(--body); color:var(--dim); font-size:.86rem; margin:2px 0 0; }
+
+.guide-box{ border:1px solid var(--red-dark); background:#fbeee6; padding:18px 20px; margin-bottom:30px; }
+.guide-box .guide-title{
+  display:flex; justify-content:space-between; align-items:center; cursor:pointer; background:none; border:none; width:100%;
+  font-family:var(--mono); font-size:.74rem; text-transform:uppercase; letter-spacing:.05em; color:var(--red-dark); font-weight:700; padding:0;
+}
+.guide-box ol{ margin:16px 0 0; padding-left:20px; color:var(--ink); font-size:.92rem; line-height:1.8; }
+.guide-box ol li{ margin-bottom:6px; }
+.guide-box ol strong{ color:var(--red-dark); }
 
 .admin-btn{
   display:inline-block; font-family:var(--mono); text-transform:uppercase; letter-spacing:.05em; font-size:.78rem;
