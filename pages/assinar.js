@@ -3,7 +3,6 @@ import { useRouter } from 'next/router';
 import SiteLayout from '../components/SiteLayout';
 import { createAdminClient } from '../lib/supabase/adminClient';
 
-const DIAS = ['segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado', 'domingo'];
 
 export async function getStaticProps() {
   let subscriberCount = 0;
@@ -26,7 +25,6 @@ export default function AssinarPage({ subscriberCount }) {
     nome: '',
     email: '',
     plano: 'anual',
-    preferredDay: 'terça',
     aceitaTermos: false,
     querNewsletter: true,
     isGift: false,
@@ -197,7 +195,7 @@ export default function AssinarPage({ subscriberCount }) {
                 </div>
                 <div className="per">por mês · cancele quando quiser</div>
                 <ul>
-                  <li>Duas edições por semana, no dia que você escolher</li>
+                  <li>Duas edições por semana, toda quarta e sexta</li>
                   <li>Nunca mais perca uma edição — o arquivo inteiro fica disponível quando você quiser reler</li>
                   <li>Sem anúncio, sem patrocínio disfarçado de matéria</li>
                 </ul>
@@ -266,19 +264,6 @@ export default function AssinarPage({ subscriberCount }) {
                   />
                 </div>
               </div>
-
-              {!form.isGift && (
-              <div className="form-field">
-                <label htmlFor="dia">Quando você quer receber sua newsletter?</label>
-                <select id="dia" value={form.preferredDay} onChange={(e) => update('preferredDay', e.target.value)}>
-                  {DIAS.map((d) => (
-                    <option key={d} value={d}>
-                      {d.charAt(0).toUpperCase() + d.slice(1)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              )}
 
               {!form.isGift && (
               <div className="checkbox-row">
@@ -366,7 +351,7 @@ export default function AssinarPage({ subscriberCount }) {
             <div className="faq-item">
               <dt>&quot;Vou receber spam ou e-mail todo dia?&quot;</dt>
               <dd>
-                Só duas vezes por semana, sempre no dia que você escolher no cadastro. Nada de
+                Só duas vezes por semana, sempre às quartas e sextas. Nada de
                 &quot;edição bônus&quot; toda hora lotando sua caixa de entrada.
               </dd>
             </div>

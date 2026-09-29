@@ -300,14 +300,13 @@ embutido no `schema.sql` também).
 Fluxo: pagamento confirmado pelo webhook → a pessoa presenteada é ativada (não quem
 pagou) → ela recebe um e-mail "🎁 Alguém te presenteou" com a mensagem de quem
 presenteou → o link do e-mail leva pra `/minha-conta`, onde ela entra com o próprio
-e-mail (magic link) e escolhe o dia preferido dela. Quem pagou continua sendo dono da
+e-mail (magic link) e vê a assinatura dela. Quem pagou continua sendo dono da
 cobrança e pode cancelar a qualquer momento em `/minha-conta` — lá aparece com a etiqueta
 "🎁 Presente para [nome]" em vez do card normal de assinatura.
 
-Também corrigi a copy do site (home, `/assinar`, e-mail de boas-vindas) que dizia fixo
-"terça e quinta" — hoje reflete que cada assinante escolhe o próprio dia, e esse campo
-agora é editável a qualquer momento em `/minha-conta` (tanto para quem paga a própria
-assinatura quanto para quem recebeu de presente).
+Atualização: as edições saem em dias fixos, **toda quarta e sexta** (foco de cada dia no "Mapa da escrita" do editor).
+O seletor de dia preferido saiu de `/assinar` e `/minha-conta`, e a copy do site e dos e-mails foi ajustada.
+A coluna `preferred_day` continua no banco, sem uso: nenhum envio a lê.
 
 ## 15. Editor de newsletter — upload de imagem no corpo do texto
 
@@ -429,5 +428,6 @@ Notas do Brevo:
 - O remetente precisa estar **verificado** no Brevo e o domínio autenticado (DKIM e DMARC).
 - Plano gratuito: limite de **300 e-mails por dia**, somando campanhas e e-mails avulsos. O teste A/B de assunto do admin **não** funciona no Brevo gratuito, deixe o assunto B vazio.
 - Nas campanhas, o Brevo acrescenta o próprio rodapé de descadastro. Quem clica nele sai da lista do Brevo.
-- Assinantes ativos no Supabase que ainda não estão na lista do Brevo precisam ser cadastrados lá (importação em CRM > Listas), porque o site só cadastra automaticamente quem paga a partir da troca.
+- Antes de cada envio o site **sincroniza sozinho** a lista do Brevo com os assinantes ativos do Supabase (adiciona os que faltam e tira quem não é mais ativo). Não precisa importar contatos à mão. Para não remover ninguém da lista, defina `BREVO_SYNC_REMOVE=false`.
+- Contatos que descadastraram pelo rodapé do Brevo ficam bloqueados lá e não recebem, mesmo continuando ativos no Supabase.
 - Para conferir na primeira vez: em um envio real, veja se o nome aparece no lugar de `{{ contact.FIRSTNAME }}` e se os links de enquete e descadastro levam o e-mail certo.

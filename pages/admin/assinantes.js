@@ -9,7 +9,7 @@ export async function getServerSideProps(context) {
   const admin = createAdminClient();
   const { data: assinantes } = await admin
     .from('newsletter_subscribers')
-    .select('id, email, nome, status, preferred_day, preferred_time, created_at')
+    .select('id, email, nome, status, created_at')
     .order('created_at', { ascending: false })
     .limit(200);
 
@@ -40,7 +40,6 @@ export default function AssinantesPage({ adminUser, assinantes, mensagens }) {
               <th>Nome</th>
               <th>E-mail</th>
               <th>Status</th>
-              <th>Dia preferido</th>
               <th>Desde</th>
             </tr>
           </thead>
@@ -52,13 +51,12 @@ export default function AssinantesPage({ adminUser, assinantes, mensagens }) {
                 <td>
                   <span className={`badge ${a.status === 'active' ? 'ok' : 'neutral'}`}>{a.status}</span>
                 </td>
-                <td style={{ textTransform: 'capitalize' }}>{a.preferred_day || '—'}</td>
                 <td>{new Date(a.created_at).toLocaleDateString('pt-BR')}</td>
               </tr>
             ))}
             {assinantes.length === 0 && (
               <tr>
-                <td colSpan={5}>Nenhum assinante ainda.</td>
+                <td colSpan={4}>Nenhum assinante ainda.</td>
               </tr>
             )}
           </tbody>

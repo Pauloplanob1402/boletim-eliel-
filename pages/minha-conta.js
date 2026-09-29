@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import SiteLayout from '../components/SiteLayout';
 import { createClient } from '../lib/supabase/browserClient';
 
-const DIAS = ['segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado', 'domingo'];
 
 export async function getServerSideProps() {
   // Mesmo motivo do admin/login.js — evita pré-renderização estática no build.
@@ -23,10 +22,6 @@ export default function MinhaContaPage() {
   const [cancelError, setCancelError] = useState('');
   const [cancelLoading, setCancelLoading] = useState(false);
   const [cancelled, setCancelled] = useState(false);
-
-  const [dayDraft, setDayDraft] = useState('');
-  const [daySaving, setDaySaving] = useState(false);
-  const [daySaved, setDaySaved] = useState(false);
 
   const [edicoes, setEdicoes] = useState(null);
   const [edicoesError, setEdicoesError] = useState('');
@@ -66,11 +61,10 @@ export default function MinhaContaPage() {
       // não há necessariamente uma linha em `subscriptions` para esta conta).
       const { data: subRow } = await supabase
         .from('newsletter_subscribers')
-        .select('id, status, preferred_day, receive_newsletter')
+        .select('id, status, receive_newsletter')
         .eq('user_id', session.user.id)
         .maybeSingle();
       setSubscriberRow(subRow);
-      setDayDraft(subRow?.preferred_day || 'terça');
 
       setLoadingData(false);
 
@@ -122,22 +116,6 @@ export default function MinhaContaPage() {
       setFeedbackError('Erro de conexão ao enviar.');
     }
     setFeedbackSending(false);
-  }
-
-  async function handleSaveDay(e) {
-    e.preventDefault();
-    if (!subscriberRow) return;
-    setDaySaving(true);
-    setDaySaved(false);
-    const { error } = await supabase
-      .from('newsletter_subscribers')
-      .update({ preferred_day: dayDraft })
-      .eq('id', subscriberRow.id);
-    if (!error) {
-      setSubscriberRow((r) => ({ ...r, preferred_day: dayDraft }));
-      setDaySaved(true);
-    }
-    setDaySaving(false);
   }
 
   async function sendMagicLink(e) {
@@ -297,25 +275,9 @@ export default function MinhaContaPage() {
               {!loadingData && subscriberRow && (
                 <div style={{ border: '1px solid var(--line)', padding: 24, marginTop: subscription ? 16 : 20 }}>
                   <span className="eyebrow">Você recebe a newsletter</span>
-                  <h2 style={{ fontSize: '1.05rem', margin: '4px 0 16px' }}>
-                    {subscriberRow.status === 'active' ? 'Ativo — chega no dia que você escolher' : subscriberRow.status}
+                  <h2 style={{ fontSize: '1.05rem', margin: '4px 0 0' }}>
+                    {subscriberRow.status === 'active' ? 'Ativo — você recebe toda quarta e sexta' : subscriberRow.status}
                   </h2>
-                  <form onSubmit={handleSaveDay}>
-                    <div className="form-field" style={{ maxWidth: 240 }}>
-                      <label htmlFor="dia-pref">Dia preferido</label>
-                      <select id="dia-pref" value={dayDraft} onChange={(e) => setDayDraft(e.target.value)}>
-                        {DIAS.map((d) => (
-                          <option key={d} value={d}>
-                            {d.charAt(0).toUpperCase() + d.slice(1)}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <button type="submit" className="admin-btn secondary" disabled={daySaving}>
-                      {daySaving ? 'Salvando…' : 'Salvar dia'}
-                    </button>
-                    {daySaved && <span style={{ marginLeft: 10, fontSize: '.85rem', color: 'var(--dim)' }}>Salvo ✓</span>}
-                  </form>
                 </div>
               )}
 

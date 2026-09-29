@@ -8,7 +8,7 @@
 // sempre quem PAGA; se isGift = true, quem recebe as edições é
 // giftRecipientEmail — um perfil e um registro de assinante próprios são
 // criados para essa pessoa, para que ela também possa entrar em /minha-conta
-// (via magic link com o próprio e-mail) e escolher o dia preferido dela.
+// (via magic link com o próprio e-mail) e ver a assinatura dela.
 import { createAdminClient } from '../../lib/supabase/adminClient';
 import { createSubscription } from '../../lib/mercadopago/client';
 import { emailProvider } from '../../lib/email/provider';
@@ -48,13 +48,13 @@ async function findOrCreateProfile(admin, { email, nome, querNewsletter, nowIso 
   return created.user.id;
 }
 
-async function upsertNewsletterSubscriber(admin, { userId, email, nome, preferredDay, receiveNewsletter, nowIso }) {
+async function upsertNewsletterSubscriber(admin, { userId, email, nome, receiveNewsletter, nowIso }) {
   const { data: existingSub } = await admin.from('newsletter_subscribers').select('id').eq('email', email).maybeSingle();
 
   if (existingSub) {
     await admin
       .from('newsletter_subscribers')
-      .update({ nome, status: 'pending', receive_newsletter: receiveNewsletter, preferred_day: preferredDay, updated_at: nowIso })
+      .update({ nome, status: 'pending', receive_newsletter: receiveNewsletter, updated_at: nowIso })
       .eq('id', existingSub.id);
   } else {
     await admin.from('newsletter_subscribers').insert({
@@ -63,7 +63,6 @@ async function upsertNewsletterSubscriber(admin, { userId, email, nome, preferre
       nome,
       status: 'pending',
       receive_newsletter: receiveNewsletter,
-      preferred_day: preferredDay,
     });
   }
 }
@@ -75,7 +74,6 @@ export default async function handler(req, res) {
     nome,
     email,
     plano,
-    preferredDay,
     aceitaTermos,
     querNewsletter,
     isGift,
@@ -103,7 +101,7 @@ export default async function handler(req, res) {
 
     if (isGift) {
       // 2a) Perfil de quem RECEBE o presente — para poder logar em
-      // /minha-conta com o próprio e-mail e escolher o dia preferido.
+      // /minha-conta com o próprio e-mail e ver a assinatura.
       const recipientUserId = await findOrCreateProfile(admin, {
         email: giftRecipientEmail,
         nome: giftRecipientName,
@@ -115,7 +113,6 @@ export default async function handler(req, res) {
         userId: recipientUserId,
         email: giftRecipientEmail,
         nome: giftRecipientName,
-        preferredDay: preferredDay || null,
         receiveNewsletter: true,
         nowIso,
       });
@@ -125,7 +122,6 @@ export default async function handler(req, res) {
         userId: payerUserId,
         email,
         nome,
-        preferredDay,
         receiveNewsletter: !!querNewsletter,
         nowIso,
       });
