@@ -138,6 +138,29 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
     updateReadingTime();
   }
 
+  // Como formatBlock (Título/Subtítulo/Texto normal) cria <h2>/<h3>/<p> "puros",
+  // sem tamanho de fonte definido, alguns clientes de e-mail (Outlook em especial,
+  // e às vezes o Gmail) ignoram o tamanho padrão do navegador e mostram tudo do
+  // mesmo tamanho pequeno. Por isso aplicamos o estilo direto no elemento depois
+  // do comando, em vez de confiar no tamanho padrão do H2/H3/P.
+  function execFormatBlock(tag, styleString) {
+    editorRef.current?.focus();
+    restoreSelection();
+    document.execCommand('formatBlock', false, tag);
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+      let node = sel.anchorNode;
+      if (node && node.nodeType === 3) node = node.parentElement;
+      const block = node ? node.closest(tag.toLowerCase()) : null;
+      if (block && editorRef.current && editorRef.current.contains(block)) {
+        block.setAttribute('style', styleString);
+      }
+    }
+    saveSelection();
+    markDirty();
+    updateReadingTime();
+  }
+
   function insertHtml(html) {
     editorRef.current?.focus();
     restoreSelection();
@@ -194,7 +217,7 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
       .trim()
       .split(/\r?\n+/)
       .filter((line) => line.trim())
-      .map((line) => `<p>${escapeHtml(line)}</p>`)
+      .map((line) => `<p style="font-family:Georgia, 'Times New Roman', serif; font-size:17px; line-height:1.6; color:#6f6252; margin:0 0 16px;">${escapeHtml(line)}</p>`)
       .join('');
     insertHtml(html);
   }
@@ -267,7 +290,7 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
     insertHtml('<hr style="border:none; border-top:1px solid #e2d5bd; margin:28px 0;" />');
   }
   function handleQuote() {
-    insertHtml('<blockquote style="border-left:3px solid #d9591a; margin:20px 0; padding:4px 0 4px 16px; color:#6f6252; font-style:italic;">Cite algo aqui</blockquote>');
+    insertHtml('<blockquote style="border-left:3px solid #d9591a; margin:20px 0; padding:4px 0 4px 16px; font-family:Georgia, \'Times New Roman\', serif; font-size:17px; line-height:1.6; color:#6f6252; font-style:italic;">Cite algo aqui</blockquote>');
   }
   function handleDestaque() {
     insertHtml('<div style="background:#f4ecdd; border-left:3px solid #d9591a; padding:14px 18px; margin:20px 0;"><strong>Destaque:</strong> escreva aqui o resumo em 1-2 frases.</div>');
@@ -581,8 +604,9 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
               pré-header aparecem na caixa de entrada do leitor — logo abaixo você vê uma simulação.
             </li>
             <li>
-              <strong>Passo 2 — Escreva o conteúdo.</strong> Digite direto na caixa. Para colocar link, imagem ou
-              botão, use os botões acima dela: cada um abre uma janelinha que pergunta o que precisa.
+              <strong>Passo 2 — Escreva o conteúdo.</strong> Digite ou cole seu texto na caixa e edite depois. Para
+              colocar link, imagem ou botão, use os botões acima dela: cada um abre uma janelinha que pergunta o que
+              precisa.
             </li>
             <li>
               <strong>Passo 3 — Confira e envie.</strong> Siga a lista: veja a prévia, mande um teste pra você e só
@@ -691,11 +715,13 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
           <div>
             <h2>Escreva o conteúdo</h2>
             <p>
-              O corpo do e-mail. Digite direto na caixa
+              O corpo do e-mail. Digite ou cole seu texto na caixa e edite depois
               {readingMinutes > 0 ? ` — ⏱️ leitura estimada: ${readingMinutes} min.` : '.'}
             </p>
           </div>
         </div>
+
+        <ContentMapReminder />
 
         <div className="editor-toolbar" onMouseDown={(e) => { if (e.target.closest('button')) e.preventDefault(); }}>
           <div className="toolbar-group">
@@ -703,9 +729,9 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
             <div className="toolbar-buttons">
               <button type="button" onClick={() => exec('bold')} title="Negrito: deixa o texto selecionado mais forte"><strong>N</strong></button>
               <button type="button" onClick={() => exec('italic')} title="Itálico: deixa o texto selecionado inclinado"><em>I</em></button>
-              <button type="button" onClick={() => exec('formatBlock', 'H2')} title="Transforma a linha em título grande">Título</button>
-              <button type="button" onClick={() => exec('formatBlock', 'H3')} title="Transforma a linha em título menor">Subtítulo</button>
-              <button type="button" onClick={() => exec('formatBlock', 'P')} title="Volta a linha para texto comum">Texto normal</button>
+              <button type="button" onClick={() => execFormatBlock('H2', 'font-family:Arial, sans-serif; font-size:24px; line-height:1.25; font-weight:bold; color:#2b2118; margin:26px 0 10px;')} title="Transforma a linha em título grande">Título</button>
+              <button type="button" onClick={() => execFormatBlock('H3', 'font-family:Arial, sans-serif; font-size:19px; line-height:1.3; font-weight:bold; color:#2b2118; margin:22px 0 8px;')} title="Transforma a linha em título menor">Subtítulo</button>
+              <button type="button" onClick={() => execFormatBlock('P', "font-family:Georgia, 'Times New Roman', serif; font-size:17px; line-height:1.6; color:#6f6252; margin:0 0 16px;")} title="Volta a linha para texto comum">Texto normal</button>
               <button type="button" onClick={() => exec('justifyLeft')} title="Alinhar à esquerda">⬅ Esquerda</button>
               <button type="button" onClick={() => exec('justifyCenter')} title="Centralizar">↔ Centro</button>
             </div>
@@ -954,6 +980,60 @@ function Counter({ value, ideal }) {
   return (
     <div className={`char-counter${n > ideal ? ' over' : ''}`}>
       {n}/{ideal} caracteres{n > ideal ? ' — pode ser cortado em alguns celulares' : ''}
+    </div>
+  );
+}
+
+// Mapa da escrita: o foco de conteúdo de cada dia de envio fixo (quarta e
+// sexta), pra quem estiver escrevendo lembrar sem precisar abrir outro doc.
+const MAPA_ESCRITA = {
+  3: {
+    dia: 'Quarta-feira',
+    foco: 'Bastidores da Câmara, comissões da semana e o que esperar do STF.',
+    objetivo: '"O que está acontecendo agora e o que você precisa prestar atenção hoje."',
+  },
+  5: {
+    dia: 'Sexta-feira',
+    foco: 'Análise das votações finais, vereditos do STF e os desdobramentos para a próxima semana.',
+    objetivo: '"O balanço definitivo da semana política e o impacto no seu bolso/liberdade."',
+  },
+};
+
+function ContentMapReminder() {
+  const hoje = MAPA_ESCRITA[new Date().getDay()];
+  return (
+    <div className="guide-box" style={{ marginBottom: 16 }}>
+      <div className="guide-title" style={{ cursor: 'default' }}>
+        <span>🗺️ Mapa da escrita — foco de cada dia</span>
+      </div>
+      {hoje && (
+        <p style={{ margin: '0 0 10px' }}>
+          Hoje é <strong>{hoje.dia}</strong>: foco em {hoje.foco} Objetivo pro leitor: {hoje.objetivo}
+        </p>
+      )}
+      {!hoje && (
+        <p style={{ margin: '0 0 10px', fontStyle: 'italic' }}>
+          Hoje não é dia de envio (quarta ou sexta). Veja abaixo o foco de cada edição pra se planejar com antecedência.
+        </p>
+      )}
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '.92rem' }}>
+        <thead>
+          <tr>
+            <th style={{ textAlign: 'left', padding: '4px 8px 4px 0' }}>Dia</th>
+            <th style={{ textAlign: 'left', padding: '4px 8px' }}>Foco do conteúdo</th>
+            <th style={{ textAlign: 'left', padding: '4px 0' }}>Objetivo pro leitor</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.values(MAPA_ESCRITA).map((row) => (
+            <tr key={row.dia} style={hoje?.dia === row.dia ? { fontWeight: 'bold' } : undefined}>
+              <td style={{ padding: '4px 8px 4px 0', verticalAlign: 'top' }}>{row.dia}</td>
+              <td style={{ padding: '4px 8px', verticalAlign: 'top' }}>{row.foco}</td>
+              <td style={{ padding: '4px 0', verticalAlign: 'top' }}>{row.objetivo}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
