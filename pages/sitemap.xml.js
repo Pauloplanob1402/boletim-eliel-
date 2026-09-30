@@ -14,6 +14,7 @@ const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL || 'https://semmimimi.com.br')
 const STATIC_PAGES = [
   { path: '/', changefreq: 'weekly', priority: '1.0' },
   { path: '/edicao-exemplo', changefreq: 'monthly', priority: '0.8' },
+  { path: '/edicao-de-lancamento', changefreq: 'yearly', priority: '0.5' },
   { path: '/assinar', changefreq: 'monthly', priority: '0.9' },
   { path: '/termos-de-uso', changefreq: 'yearly', priority: '0.2' },
   { path: '/politica-de-privacidade', changefreq: 'yearly', priority: '0.2' },

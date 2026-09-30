@@ -431,3 +431,10 @@ Notas do Brevo:
 - Antes de cada envio o site **sincroniza sozinho** a lista do Brevo com os assinantes ativos do Supabase (adiciona os que faltam e tira quem não é mais ativo). Não precisa importar contatos à mão. Para não remover ninguém da lista, defina `BREVO_SYNC_REMOVE=false`.
 - Contatos que descadastraram pelo rodapé do Brevo ficam bloqueados lá e não recebem, mesmo continuando ativos no Supabase.
 - Para conferir na primeira vez: em um envio real, veja se o nome aparece no lugar de `{{ contact.FIRSTNAME }}` e se os links de enquete e descadastro levam o e-mail certo.
+
+## Degustação pública (/edicao-exemplo)
+
+- `/edicao-exemplo` é a **edição degustação aberta a visitantes**: uma edição completa ("As Sobras de Ontem", 30/09/2026) no formato que o assinante recebe, com uma simulação da caixa de entrada no topo e o botão de assinar no fim. É a página ligada ao menu ("Leia uma edição"), aos botões da home e ao e-mail de pagamento em processamento.
+- Para trocar a degustação por outra edição, edite o texto em `pages/edicao-exemplo.js` (parágrafos em `<p>`, seções em `<h3>`, fontes no bloco `Fonte:`). Lembre de atualizar também a data e a linha da caixa de entrada no topo.
+- A edição de lançamento ("Por que eu vou cobrar...") foi preservada em `/edicao-de-lancamento`, com link no fim da degustação.
+- Ambas estão no sitemap (`pages/sitemap.xml.js`).
