@@ -434,7 +434,8 @@ Notas do Brevo:
 
 ## Degustação pública (/edicao-exemplo)
 
-- `/edicao-exemplo` é a **edição degustação aberta a visitantes**: uma edição completa ("As Sobras de Ontem", 30/09/2026) no formato que o assinante recebe, com uma simulação da caixa de entrada no topo e o botão de assinar no fim. É a página ligada ao menu ("Leia uma edição"), aos botões da home e ao e-mail de pagamento em processamento.
-- Para trocar a degustação por outra edição, edite o texto em `pages/edicao-exemplo.js` (parágrafos em `<p>`, seções em `<h3>`, fontes no bloco `Fonte:`). Lembre de atualizar também a data e a linha da caixa de entrada no topo.
-- A edição de lançamento ("Por que eu vou cobrar...") foi preservada em `/edicao-de-lancamento`, com link no fim da degustação.
+- `/edicao-exemplo` é a **edição degustação aberta a visitantes**: a edição "As Sobras de Ontem" (30/09/2026) **na íntegra, com o texto do Pavinatto** (incluindo a "Saideira"), uma simulação da caixa de entrada no topo e o botão de assinar no fim. É a página ligada ao menu ("Leia uma edição"), aos botões da home e ao e-mail de pagamento em processamento.
+- O texto fica na constante `EDICAO` em `pages/edicao-exemplo.js` (`p` parágrafo, `h3` título, `sign` signo, `sub` subtítulo, `quote` frase solta, `src` fonte com link). Para trocar de edição, substitua os itens e ajuste `ASSUNTO`, `PRE_HEADER`, `DATA_EDICAO` e `LEITURA_MIN`.
+- A única alteração feita no texto original foi incluir "vieiras" no cardápio da primeira menção ao almoço, para bater com a piada seguinte e com a Saideira.
+- A edição "por que vale a pena pagar" (`/edicao-de-lancamento`, "Por que eu vou cobrar pra falar o que sempre falei de graça") tem destaque duas vezes na degustação e o item **Por que assinar** no menu e no rodapé.
 - Ambas estão no sitemap (`pages/sitemap.xml.js`).

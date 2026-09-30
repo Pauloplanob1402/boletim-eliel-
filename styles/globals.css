@@ -338,3 +338,9 @@ table.admin-table td.strong{ color:var(--ink); font-weight:600; }
 .quick-times{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
 .quick-times .admin-btn{ padding:8px 12px; }
 .guide-box .guide-title:focus-visible{ outline:2px solid var(--red-dark); outline-offset:3px; }
+
+/* ---- Destaque para a edição "por que vale a pena pagar" ---- */
+.launch-callout{ border:1px solid var(--line); border-left:3px solid var(--gold-dark); background:var(--bg2); padding:22px 24px; margin-top:28px; }
+.launch-callout.strong{ border-left-color:var(--red-dark); background:#fbeee6; }
+.launch-callout h2{ font-size:clamp(1.25rem,3.4vw,1.6rem); margin:.2em 0 .4em; max-width:30ch; }
+.launch-callout p{ color:var(--dim); max-width:60ch; margin:0 0 16px; }

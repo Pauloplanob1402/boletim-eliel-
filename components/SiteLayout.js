@@ -61,6 +61,9 @@ export default function SiteLayout({
             <Link href="/edicao-exemplo" className={active === 'edicao' ? 'active' : ''}>
               Leia uma edição
             </Link>
+            <Link href="/edicao-de-lancamento" className={active === 'lancamento' ? 'active' : ''}>
+              Por que assinar
+            </Link>
             <Link
               href="/assinar"
               className={`btn-nav${active === 'assinar' ? ' active' : ''}`}
@@ -81,6 +84,7 @@ export default function SiteLayout({
           <nav>
             <Link href="/">Início</Link>
             <Link href="/edicao-exemplo">Leia uma edição</Link>
+            <Link href="/edicao-de-lancamento">Por que assinar</Link>
             <Link href="/assinar">Assinar</Link>
           </nav>
         </div>
