@@ -444,3 +444,10 @@ Notas do Brevo:
 
 - Ao colar no editor, o texto entra limpo (sem formatação de Word/Docs), mas **endereços soltos (`https://...`, `www....`) viram links clicáveis** e links do documento original são mantidos.
 - Na hora de salvar, visualizar e enviar, o sistema também transforma em link qualquer endereço solto que tenha sido digitado à mão ou venha de rascunhos antigos (`autolinkHtml` em `pages/admin/newsletters/nova.js`).
+
+## E-mail: imagens e largura
+
+- Toda imagem inserida no corpo da newsletter sai do sistema com largura fixa de 592px e altura automática (`constrainContentImages` em `lib/newsletter/emailTemplate.js`). Sem isso, o Outlook mostra a imagem no tamanho original (às vezes milhares de pixels), alarga o e-mail e encolhe o texto inteiro.
+- A tabela principal usa `table-layout: fixed` e o conteúdo quebra palavras/links longos, para nada empurrar a largura do e-mail.
+- Dica: use imagens com cerca de 1200px de largura (arquivos menores carregam mais rápido no celular).
+- Ao subir imagens (principal ou no texto), o editor reduz sozinho para no máximo 1200px de largura (JPEG 85%) antes de enviar ao Supabase (`downscaleImage` em `pages/admin/newsletters/nova.js`). GIFs e imagens já pequenas não são alterados.

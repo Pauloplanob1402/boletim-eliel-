@@ -315,11 +315,12 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
 
   // ---------- Upload de imagens ----------
   async function handleImageUpload(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const original = e.target.files?.[0];
+    if (!original) return;
     e.target.value = '';
     setError('');
     setUploading(true);
+    const file = await downscaleImage(original);
     const path = `hero/${Date.now()}-${safeFileName(file.name)}`;
     const { error: uploadError } = await supabase.storage.from('newsletter-media').upload(path, file);
     setUploading(false);
@@ -332,11 +333,12 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
   }
 
   async function handleContentImageUpload(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const original = e.target.files?.[0];
+    if (!original) return;
     e.target.value = ''; // permite selecionar o mesmo arquivo de novo depois
     setError('');
     setUploading(true);
+    const file = await downscaleImage(original);
     const path = `content/${Date.now()}-${safeFileName(file.name)}`;
     const { error: uploadError } = await supabase.storage.from('newsletter-media').upload(path, file);
     setUploading(false);
@@ -1152,6 +1154,35 @@ function normalizeUrl(raw) {
   if (!v) return '';
   if (/^(https?:\/\/|mailto:)/i.test(v)) return v;
   return 'https://' + v;
+}
+// Fotos de celular/IA costumam ter 2.000 a 4.000px e vários MB: pesam no celular do leitor e fazem o Outlook
+// alargar o e-mail. Antes do upload, reduzimos para no máximo 1200px de largura (JPEG qualidade 85%).
+// GIFs (animados) e imagens que já são pequenas não são alteradas.
+async function downscaleImage(file, maxWidth = 1200) {
+  if (!/^image\/(jpeg|png|webp)$/i.test(file.type)) return file;
+  try {
+    const bitmap = await createImageBitmap(file);
+    if (bitmap.width <= maxWidth && file.size < 800 * 1024) {
+      bitmap.close?.();
+      return file;
+    }
+    const scale = Math.min(1, maxWidth / bitmap.width);
+    const w = Math.round(bitmap.width * scale);
+    const h = Math.round(bitmap.height * scale);
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, w, h);
+    ctx.drawImage(bitmap, 0, 0, w, h);
+    bitmap.close?.();
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.85));
+    if (!blob || blob.size >= file.size) return file; // só troca se realmente ficou menor
+    return new File([blob], file.name.replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' });
+  } catch {
+    return file;
+  }
 }
 function safeFileName(name) {
   const dot = name.lastIndexOf('.');
