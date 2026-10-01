@@ -439,3 +439,8 @@ Notas do Brevo:
 - A única alteração feita no texto original foi incluir "vieiras" no cardápio da primeira menção ao almoço, para bater com a piada seguinte e com a Saideira.
 - A edição "por que vale a pena pagar" (`/edicao-de-lancamento`, "Por que eu vou cobrar pra falar o que sempre falei de graça") tem destaque duas vezes na degustação e o item **Por que assinar** no menu e no rodapé.
 - Ambas estão no sitemap (`pages/sitemap.xml.js`).
+
+## Editor: links ao colar
+
+- Ao colar no editor, o texto entra limpo (sem formatação de Word/Docs), mas **endereços soltos (`https://...`, `www....`) viram links clicáveis** e links do documento original são mantidos.
+- Na hora de salvar, visualizar e enviar, o sistema também transforma em link qualquer endereço solto que tenha sido digitado à mão ou venha de rascunhos antigos (`autolinkHtml` em `pages/admin/newsletters/nova.js`).

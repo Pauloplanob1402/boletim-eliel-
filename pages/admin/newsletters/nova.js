@@ -198,28 +198,42 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
     setTimeout(() => el.focus?.(), 300);
   }
 
-  // Colar sempre como texto puro: evita a "sujeira" de formatação do Word/Google Docs/site.
+  // Colar sempre limpo (sem a "sujeira" do Word/Google Docs/site), mas MANTENDO os links:
+  // endereços soltos (https://...) viram links clicáveis e links do documento original são preservados.
   function handlePaste(e) {
-    const text = e.clipboardData?.getData('text/plain');
-    if (!text) return;
+    const text = e.clipboardData?.getData('text/plain') || '';
+    const html = e.clipboardData?.getData('text/html') || '';
+    if (!text && !html) return;
     e.preventDefault();
     saveSelection();
-    if (!/\n/.test(text.trim())) {
+
+    let paras;
+    if (/<a\s[^>]*href=/i.test(html)) {
+      paras = htmlToParagraphs(html);
+    } else {
+      paras = text
+        .split(/\r?\n+/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => linkify(escapeHtml(line)));
+    }
+    if (paras.length === 0) return;
+
+    // Uma linha só, sem link: texto puro, como antes.
+    if (paras.length === 1 && !/<a\s/i.test(paras[0])) {
       editorRef.current?.focus();
       restoreSelection();
-      document.execCommand('insertText', false, text);
+      document.execCommand('insertText', false, text.trim());
       saveSelection();
       markDirty();
       updateReadingTime();
       return;
     }
-    const html = text
-      .trim()
-      .split(/\r?\n+/)
-      .filter((line) => line.trim())
-      .map((line) => `<p style="font-family:Georgia, 'Times New Roman', serif; font-size:17px; line-height:1.6; color:#6f6252; margin:0 0 16px;">${escapeHtml(line)}</p>`)
-      .join('');
-    insertHtml(html);
+    if (paras.length === 1) {
+      insertHtml(paras[0]);
+      return;
+    }
+    insertHtml(paras.map((x) => `<p style="${PARAGRAPH_STYLE}">${x}</p>`).join(''));
   }
 
   // ---------- Janelas de inserção (no lugar dos prompts do navegador) ----------
@@ -356,8 +370,9 @@ export default function NovaNewsletterPage({ adminUser, initialNewsletter }) {
     return true;
   }
 
+  // Todo e-mail sai com os endereços soltos já como link clicável, mesmo os digitados à mão.
   function getContentHtml() {
-    return editorRef.current?.innerHTML || '';
+    return autolinkHtml(editorRef.current?.innerHTML || '');
   }
 
   async function saveDraft() {
@@ -1055,6 +1070,82 @@ function escapeHtml(str) {
 }
 function escapeAttr(str) {
   return escapeHtml(str).replace(/"/g, '&quot;');
+}
+
+const LINK_STYLE = 'color:#d9591a; text-decoration:underline;';
+const PARAGRAPH_STYLE = "font-family:Georgia, 'Times New Roman', serif; font-size:17px; line-height:1.6; color:#6f6252; margin:0 0 16px;";
+const URL_PATTERN = /(https?:\/\/[^\s<>"]+|www\.[^\s<>"]+)/gi;
+
+// Recebe texto JÁ escapado e transforma endereços soltos em <a>. Pontuação final fica fora do link.
+function linkify(escaped) {
+  return escaped.replace(URL_PATTERN, (match) => {
+    const trail = (match.match(/[.,;:!?)\]}”’'"]+$/) || [''])[0];
+    const shown = trail ? match.slice(0, -trail.length) : match;
+    if (!shown) return match;
+    const raw = shown.replace(/&amp;/g, '&');
+    const href = /^https?:\/\//i.test(raw) ? raw : 'https://' + raw;
+    return `<a href="${escapeAttr(href)}" style="${LINK_STYLE}">${shown}</a>${trail}`;
+  });
+}
+
+// Percorre o HTML colado (Word, Google Docs, sites) e devolve só parágrafos de texto + links.
+function htmlToParagraphs(html) {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const paras = [];
+  let cur = '';
+  const flush = () => {
+    if (cur.replace(/<[^>]+>/g, '').trim()) paras.push(cur.trim());
+    cur = '';
+  };
+  const BLOCK = /^(P|DIV|LI|H[1-6]|BLOCKQUOTE|TR|UL|OL|TABLE)$/;
+  const SKIP = /^(STYLE|SCRIPT|META|HEAD|TITLE)$/;
+  (function walk(node) {
+    node.childNodes.forEach((n) => {
+      if (n.nodeType === 3) {
+        cur += linkify(escapeHtml(n.nodeValue.replace(/\s+/g, ' ')));
+      } else if (n.nodeType === 1) {
+        const tag = n.tagName;
+        if (SKIP.test(tag)) return;
+        if (tag === 'BR') {
+          flush();
+          return;
+        }
+        if (BLOCK.test(tag)) {
+          flush();
+          walk(n);
+          flush();
+          return;
+        }
+        const href = tag === 'A' ? n.getAttribute('href') || '' : '';
+        if (/^(https?:\/\/|mailto:)/i.test(href)) {
+          cur += `<a href="${escapeAttr(href)}" style="${LINK_STYLE}">${escapeHtml(n.textContent.replace(/\s+/g, ' '))}</a>`;
+          return;
+        }
+        walk(n);
+      }
+    });
+  })(doc.body);
+  flush();
+  return paras;
+}
+
+// Rede de segurança na hora de salvar/enviar: texto solto com endereço vira link.
+function autolinkHtml(html) {
+  if (!html || typeof document === 'undefined') return html;
+  const box = document.createElement('div');
+  box.innerHTML = html;
+  const walker = document.createTreeWalker(box, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach((n) => {
+    if (n.parentElement && n.parentElement.closest('a')) return;
+    const t = n.nodeValue;
+    if (!/(https?:\/\/|www\.)\S/i.test(t)) return;
+    const holder = document.createElement('span');
+    holder.innerHTML = linkify(escapeHtml(t));
+    n.replaceWith(...Array.from(holder.childNodes));
+  });
+  return box.innerHTML;
 }
 function normalizeUrl(raw) {
   const v = (raw || '').trim();
