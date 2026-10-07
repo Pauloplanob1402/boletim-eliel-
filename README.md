@@ -451,3 +451,6 @@ Notas do Brevo:
 - A tabela principal usa `table-layout: fixed` e o conteúdo quebra palavras/links longos, para nada empurrar a largura do e-mail.
 - Dica: use imagens com cerca de 1200px de largura (arquivos menores carregam mais rápido no celular).
 - Ao subir imagens (principal ou no texto), o editor reduz sozinho para no máximo 1200px de largura (JPEG 85%) antes de enviar ao Supabase (`downscaleImage` em `pages/admin/newsletters/nova.js`). GIFs e imagens já pequenas não são alterados.
+
+## Manter o Supabase gratuito ativo
+O plano gratuito pausa o projeto após 7 dias sem uso. O workflow `.github/workflows/keep-supabase-alive.yml` consulta o banco a cada 3 dias para evitar isso. Para funcionar: (1) rode `supabase/migration_005_keep_alive.sql` no SQL Editor; (2) no GitHub, em Settings > Secrets and variables > Actions > Secrets, crie `SUPABASE_URL` e `SUPABASE_ANON_KEY` (os mesmos valores de `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY`); (3) na aba Actions, rode "Keep Supabase Alive" uma vez para testar.
