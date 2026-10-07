@@ -2,31 +2,36 @@
    @import daqui foi removido porque bloqueava o carregamento (ver commit). */
 
 :root{
-  --bg: #fbf6ee;
-  --bg2: #f4ecdd;
-  --line: #e2d5bd;
-  --line-soft: #ebe1cd;
-  --ink: #2b2118;
-  --dim: #6f6252;
-  --faint: #a3937c;
-  --red: #d9591a;
-  --red-dark: #a8420f;
-  --gold: #b3852c;
-  --gold-dark: #8a6428;
+  /* Paleta pop-art: papel creme, amarelo de quadrinho, vermelho, azul, verde-petróleo do terno, preto nos contornos */
+  --bg: #fff7e0;
+  --bg2: #ffeeb8;
+  --line: #111111;
+  --line-soft: #e6d9a8;
+  --ink: #141414;
+  --dim: #3d372c;
+  --faint: #7a7058;
+  --red: #e5322d;
+  --red-dark: #c4231e;
+  --gold: #ffd21f;
+  --gold-dark: #0f5a52;
+  --blue: #1f5fd1;
+  --teal: #0f5a52;
+  --shadow: 4px 4px 0 #111111;
 
-  /* Nomes vêm do next/font (ver lib/fonts.js + pages/_document.js) — não mudou
-     nenhum outro uso de var(--display)/var(--body)/var(--mono) no resto do CSS. */
-  --display: var(--font-display), sans-serif;
-  --body: var(--font-body), sans-serif;
+  --display: var(--font-display), 'Arial Black', sans-serif;
+  --body: var(--font-body), Georgia, serif;
   --mono: var(--font-ibm-plex-mono), monospace;
   --max: 900px;
 }
 
 *{ box-sizing: border-box; }
-html{ scroll-behavior: smooth; }
+html{ scroll-behavior: smooth; font-synthesis: none; }
 body{
-  margin:0; background: var(--bg); color: var(--ink);
-  font-family: var(--body); font-size: 18px; line-height: 1.65;
+  margin:0; background-color: var(--bg);
+  background-image: radial-gradient(rgba(229,50,45,.10) 1.2px, transparent 1.4px);
+  background-size: 14px 14px;
+  color: var(--ink);
+  font-family: var(--body); font-size: 18px; line-height: 1.7;
   -webkit-font-smoothing: antialiased;
 }
 a{ color: var(--ink); text-decoration:none; }
@@ -44,7 +49,7 @@ h1,h2,h3{
 }
 
 /* header */
-header{ border-bottom: 1px solid var(--line); position:sticky; top:0; background:rgba(251,246,238,.96); z-index:20; }
+header{ border-bottom: 1px solid var(--line); position:sticky; top:0; background:rgba(255,247,224,.97); z-index:20; }
 .nav-inner{
   display:flex; align-items:center; justify-content:space-between;
   max-width: var(--max); margin: 0 auto; padding: 18px 28px; gap:20px; flex-wrap:wrap;
@@ -261,7 +266,7 @@ table.admin-table td.strong{ color:var(--ink); font-weight:600; }
 .step-head h2{ font-family:var(--display); font-size:1.05rem; text-transform:uppercase; letter-spacing:.02em; margin:0; }
 .step-head p{ font-family:var(--body); color:var(--dim); font-size:.86rem; margin:2px 0 0; }
 
-.guide-box{ border:1px solid var(--red-dark); background:#fbeee6; padding:18px 20px; margin-bottom:30px; }
+.guide-box{ border:1px solid var(--red-dark); background:#ffe3df; padding:18px 20px; margin-bottom:30px; }
 .guide-box .guide-title{
   display:flex; justify-content:space-between; align-items:center; cursor:pointer; background:none; border:none; width:100%;
   font-family:var(--mono); font-size:.74rem; text-transform:uppercase; letter-spacing:.05em; color:var(--red-dark); font-weight:700; padding:0;
@@ -282,7 +287,7 @@ table.admin-table td.strong{ color:var(--ink); font-weight:600; }
 .admin-btn:disabled{ opacity:.5; cursor:not-allowed; }
 
 .admin-alert{ padding:14px 16px; border:1px solid var(--line); font-size:.9rem; margin-bottom:18px; }
-.admin-alert.error{ border-color:var(--red); color:var(--red-dark); background:#fbeee6; }
+.admin-alert.error{ border-color:var(--red); color:var(--red-dark); background:#ffe3df; }
 .admin-alert.success{ border-color:#3f6b1f; color:#3f6b1f; background:#eef4e6; }
 
 .login-box{ max-width:380px; margin:80px auto; padding:36px; border:1px solid var(--line); background:var(--bg2); }
@@ -290,7 +295,7 @@ table.admin-table td.strong{ color:var(--ink); font-weight:600; }
 /* ---- Editor de newsletter: barra fixa, avisos, prévia da caixa de entrada, checklist ---- */
 .edit-bar{
   position:sticky; top:0; z-index:15; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;
-  background:rgba(251,246,238,.97); border-bottom:1px solid var(--line); padding:10px 0; margin:-12px 0 22px;
+  background:rgba(255,247,224,.97); border-bottom:1px solid var(--line); padding:10px 0; margin:-12px 0 22px;
 }
 .save-status{ font-family:var(--mono); font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:var(--dim); }
 .save-status.dirty{ color:var(--red-dark); font-weight:700; }
@@ -298,7 +303,7 @@ table.admin-table td.strong{ color:var(--ink); font-weight:600; }
 .edit-bar .admin-btn{ padding:8px 12px; font-size:.7rem; }
 
 .toast-area{ position:fixed; left:50%; bottom:22px; transform:translateX(-50%); z-index:60; width:min(560px, calc(100vw - 32px)); display:flex; flex-direction:column; gap:8px; }
-.toast{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin:0; box-shadow:0 6px 24px rgba(43,33,24,.18); }
+.toast{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin:0; box-shadow:0 6px 24px rgba(17,17,17,.25); }
 .toast button{ background:none; border:none; font-size:1.3rem; line-height:1; cursor:pointer; color:inherit; padding:0 4px; }
 
 .char-counter{ font-family:var(--mono); font-size:.66rem; color:var(--faint); margin-top:5px; }
@@ -331,7 +336,7 @@ table.admin-table td.strong{ color:var(--ink); font-weight:600; }
 
 .send-steps{ display:flex; flex-direction:column; gap:14px; }
 .send-step{ display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; border:1px solid var(--line); background:var(--bg2); padding:16px 18px; }
-.send-step.primary{ border-color:var(--red-dark); background:#fbeee6; }
+.send-step.primary{ border-color:var(--red-dark); background:#ffe3df; }
 .send-step p{ margin:2px 0 10px; font-size:.84rem; color:var(--dim); }
 .send-step > div > p:last-child{ margin-bottom:0; }
 
@@ -341,6 +346,100 @@ table.admin-table td.strong{ color:var(--ink); font-weight:600; }
 
 /* ---- Destaque para a edição "por que vale a pena pagar" ---- */
 .launch-callout{ border:1px solid var(--line); border-left:3px solid var(--gold-dark); background:var(--bg2); padding:22px 24px; margin-top:28px; }
-.launch-callout.strong{ border-left-color:var(--red-dark); background:#fbeee6; }
+.launch-callout.strong{ border-left-color:var(--red-dark); background:#ffe3df; }
 .launch-callout h2{ font-size:clamp(1.25rem,3.4vw,1.6rem); margin:.2em 0 .4em; max-width:30ch; }
 .launch-callout p{ color:var(--dim); max-width:60ch; margin:0 0 16px; }
+
+
+/* ============================================
+   DIREÇÃO POP-ART (só aparência — nenhuma estrutura/HTML alterada)
+   ============================================ */
+
+/* Admin continua sóbrio: linhas suaves em vez do contorno preto do site público */
+.admin-shell, .login-box{ --line:#d9cc9f; --shadow:none; }
+.admin-shell{ background: var(--bg); }
+.admin-main .eyebrow{ border-bottom-width:1px; }
+
+/* títulos de quadrinho */
+h1,h2,h3{ letter-spacing:.01em; line-height:1.08; font-weight:400; }
+.hero h1{ text-shadow: 3px 3px 0 var(--gold); }
+.hero h1 .hl{ color: var(--red); text-shadow: 3px 3px 0 #111; }
+.eyebrow{ color: var(--bg); background: var(--teal); border:none; padding: 5px 12px 4px; transform: rotate(-1.5deg); letter-spacing:.12em; }
+.admin-main .eyebrow{ color: var(--red-dark); background:transparent; transform:none; padding:0 0 4px; border-bottom:1px solid var(--red-dark); }
+
+/* cabeçalho e rodapé */
+header{ border-bottom: 3px solid #111; }
+.brand{ font-size:1.35rem; letter-spacing:.02em; }
+.brand span{ color: var(--red); text-shadow: 2px 2px 0 #111; }
+footer{ border-top: 3px solid #111; background: var(--bg2); }
+footer .brand span{ color: var(--red) !important; }
+
+/* botões: contorno preto + sombra deslocada */
+.btn, nav.primary a.btn-nav{ border:2px solid #111; box-shadow: var(--shadow); transition: transform .08s, box-shadow .08s; }
+.btn:hover, nav.primary a.btn-nav:hover{ transform: translate(2px,2px); box-shadow: 2px 2px 0 #111; }
+.btn.ghost{ background: var(--gold); color:#111; border-color:#111; }
+.btn.ghost:hover{ background: var(--gold); color:#111; border-color:#111; }
+nav.primary a.btn-nav{ padding: 9px 16px; background: var(--red); color:#fff; }
+nav.primary a.btn-nav:hover{ background: var(--red-dark); color:#fff; border-color:#111; }
+nav.primary a.active{ color: var(--red-dark); border-color: var(--red-dark); }
+
+/* seções */
+section + section{ border-top: 2px dashed #111; }
+.hero{ background: linear-gradient(180deg, var(--bg2), var(--bg)); }
+
+/* imagem da home (topo do hero) — sem mexer no HTML */
+.hero::before{
+  content:""; display:block; max-width: var(--max); margin: 0 auto 34px;
+  width: calc(100% - 56px); aspect-ratio: 1376 / 768;
+  background: url('/hero-popart.jpg') center / cover no-repeat;
+  border: 4px solid #111; box-shadow: 8px 8px 0 #111;
+}
+@media (max-width:560px){
+  .hero::before{ width: calc(100% - 40px); box-shadow: 5px 5px 0 #111; margin-bottom:26px; }
+}
+
+/* banner nas edições (versão limpa, sem pontilhado) */
+article.wrap::before,
+.issue:has(> .tag)::before{
+  content:""; display:block; width:100%; aspect-ratio: 16 / 7; margin: 0 0 24px;
+  background: url('/edicao-banner.jpg') center 20% / cover no-repeat;
+  border: 3px solid #111; box-shadow: 5px 5px 0 #111;
+}
+
+/* cartões */
+.stake-card, .plan-card, .issue, .launch-callout{ border:2px solid #111; box-shadow: var(--shadow); }
+.stake-card.good{ border-color:#111; background: var(--gold); }
+.stake-card.good .tag{ color:#111; }
+.stake-card.bad .tag{ color: var(--red-dark); }
+.plan-card.featured{ border-color:#111; background: var(--gold); }
+.plan-card .ribbon{ background: var(--red); border:2px solid #111; color:#fff; }
+.plan .step{ border-top: 4px solid var(--red); }
+.guide .badge{ border:3px solid #111; background: var(--gold); color:#111; box-shadow: var(--shadow); }
+
+/* edição: texto em serifa com ar de jornal */
+.issue{ border-left: 2px solid #111; background: #fffdf5; }
+.issue p{ color: var(--ink); }
+.issue .quote{ border-top: 2px dashed #111; }
+.issue p a{ color: var(--blue); text-decoration: underline; text-underline-offset: 3px; }
+.issue p a:hover{ color: var(--red); }
+
+/* notas de "Fonte:" com cara de rodapé de jornal (o HTML só usa <p style="font-size:.85rem">) */
+.issue p[style*="font-size: 0.85rem"], .issue p[style*="font-size:.85rem"]{
+  font-family: var(--mono); font-size:.72rem !important; color: var(--dim);
+  border-top: 1px solid #111; padding-top: 8px; margin-top: -6px; word-break: break-word;
+}
+
+/* balão de fala nos destaques */
+.launch-callout{ position:relative; background: #fff; border-radius: 18px; }
+.launch-callout::after{
+  content:""; position:absolute; left:34px; bottom:-18px; width:26px; height:26px; background:#fff;
+  border-right:2px solid #111; border-bottom:2px solid #111; transform: rotate(45deg) skew(10deg,10deg);
+}
+.launch-callout.strong{ background: #fff; border-left-width:2px; }
+
+/* prova social e citações */
+.trust-note{ border-left: 4px solid var(--red); color: var(--dim); }
+.stake-card p[style*="italic"]{ font-size: 1.02rem; }
+
+/* inputs públicos */
+.form-field input:focus, .form-field select:focus, .form-field textarea:focus{ border-color: var(--red); box-shadow: 3px 3px 0 #111; }
