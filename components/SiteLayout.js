@@ -11,6 +11,8 @@ const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL || 'https://semmimimi.com.br')
 export default function SiteLayout({
   title,
   description,
+  ogTitle,
+  ogDescription,
   active,
   children,
   ogImage = '/og-image.jpg',
@@ -36,16 +38,20 @@ export default function SiteLayout({
             que levam pra /edicoes/[id], ver lib/newsletter/emailTemplate.js) */}
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="Sem Mimimi" />
-        <meta property="og:title" content={title} />
-        {description && <meta property="og:description" content={description} />}
+        <meta property="og:title" content={ogTitle || title} />
+        {(ogDescription ?? description) && (
+          <meta property="og:description" content={ogDescription ?? description} />
+        )}
         <meta property="og:url" content={canonical} />
         <meta property="og:image" content={absoluteOgImage} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:locale" content="pt_BR" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={title} />
-        {description && <meta name="twitter:description" content={description} />}
+        <meta name="twitter:title" content={ogTitle || title} />
+        {(ogDescription ?? description) && (
+          <meta name="twitter:description" content={ogDescription ?? description} />
+        )}
         <meta name="twitter:image" content={absoluteOgImage} />
       </Head>
 

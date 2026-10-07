@@ -22,8 +22,10 @@ export async function getStaticProps() {
 export default function HomePage({ subscriberCount }) {
   return (
     <SiteLayout
-      title="Sem Mimimi \u2014 A newsletter que n\u00e3o pede licen\u00e7a"
-      description="Duas vezes por semana, a an\u00e1lise direta e sem pano quente de Tiago Pavinatto sobre o que realmente acontece em Bras\u00edlia."
+      title="Sem Mimimi — A newsletter que não pede licença"
+      description="Duas vezes por semana, a análise direta e sem pano quente de Tiago Pavinatto sobre o que realmente acontece em Brasília."
+      ogTitle="Chega de notícia mastigada. Assine o Sem Mimimi e leia Brasília sem pano quente."
+      ogDescription=""
       active="inicio"
     >
       <div dangerouslySetInnerHTML={{ __html: "<section class=\"hero\">\n    <div class=\"wrap\">\n      <span class=\"eyebrow\">Duas vezes por semana \u00b7 toda quarta e sexta</span>\n      <h1>Voc\u00ea j\u00e1 n\u00e3o aguenta mais not\u00edcia mastigada. <span class=\"hl\">A gente tamb\u00e9m n\u00e3o.</span></h1>\n      <p class=\"lede\">Enquanto a imprensa tradicional amansa o tom pra n\u00e3o incomodar ningu\u00e9m, Tiago Pavinatto descasca a banana at\u00e9 o fim \u2014 nomeando quem precisa ser nomeado, sem medo do troco.</p>\n      <div class=\"cta-row\">\n        <a href=\"/edicao-exemplo\" class=\"btn ghost\">Ler uma edi\u00e7\u00e3o gr\u00e1tis</a>\n        <a href=\"/assinar\" class=\"btn\">Quero ser assinante</a>\n      </div>\n    </div>\n  </section>" }} />
