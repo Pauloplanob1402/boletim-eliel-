@@ -1,5 +1,6 @@
 # Mantém o projeto Supabase (plano gratuito) ativo: faz uma consulta simples a cada 3 dias.
 # Precisa de dois "secrets" no GitHub: SUPABASE_URL e SUPABASE_ANON_KEY (veja o README).
+# Precisa também da tabela keep_alive (supabase/migration_005_keep_alive.sql).
 name: Keep Supabase Alive
 
 on:
@@ -9,11 +10,50 @@ on:
 
 jobs:
   ping:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Consultar o Supabase
         env:
-          URL: ${{ secrets.SUPABASE_URL }}
-          KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          RAW_URL: ${{ secrets.SUPABASE_URL }}
+          RAW_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          curl -sf --max-time 20 "$URL/rest/v1/keep_alive?select=id&limit=1" -H "apikey: $KEY"
+          # Limpa espaços, quebras de linha e aspas coladas junto com o valor
+          clean() { printf '%s' "$1" | tr -d '\r\n"'"'"' ' ; }
+          URL="$(clean "$RAW_URL")"
+          KEY="$(clean "$RAW_KEY")"
+
+          if [ -z "$URL" ]; then
+            echo "::error::O secret SUPABASE_URL está vazio ou não existe. Crie em Settings > Secrets and variables > Actions > Secrets (o nome precisa ser exatamente SUPABASE_URL)."
+            exit 1
+          fi
+          if [ -z "$KEY" ]; then
+            echo "::error::O secret SUPABASE_ANON_KEY está vazio ou não existe. Crie em Settings > Secrets and variables > Actions > Secrets (o nome precisa ser exatamente SUPABASE_ANON_KEY)."
+            exit 1
+          fi
+
+          # Garante https:// no começo e tira a barra final
+          case "$URL" in
+            http://*|https://*) ;;
+            *) URL="https://$URL" ;;
+          esac
+          URL="${URL%/}"
+
+          # Mostra só o endereço (sem chave) para ajudar a conferir
+          echo "Consultando: $URL/rest/v1/keep_alive"
+
+          STATUS=$(curl -sS --max-time 20 -o /tmp/resposta.txt -w '%{http_code}' \
+            "$URL/rest/v1/keep_alive?select=id&limit=1" \
+            -H "apikey: $KEY" -H "Authorization: Bearer $KEY") || {
+              echo "::error::Não consegui conectar em $URL. Confira se SUPABASE_URL é a Project URL (ex.: https://xxxx.supabase.co) e se o projeto não está pausado."
+              exit 1
+            }
+
+          echo "Resposta HTTP: $STATUS"
+          cat /tmp/resposta.txt; echo
+
+          case "$STATUS" in
+            200) echo "Supabase respondeu. Tudo certo." ;;
+            401|403) echo "::error::Chave recusada. SUPABASE_ANON_KEY precisa ser a chave 'anon public' do MESMO projeto da SUPABASE_URL."; exit 1 ;;
+            404) echo "::error::Tabela keep_alive não encontrada. Rode supabase/migration_005_keep_alive.sql no SQL Editor do Supabase."; exit 1 ;;
+            *) echo "::error::Resposta inesperada ($STATUS). Veja o texto acima. Se o projeto estiver pausado, clique em Restore project no Supabase."; exit 1 ;;
+          esac
