@@ -16,6 +16,7 @@ const STATIC_PAGES = [
   { path: '/edicao-exemplo', changefreq: 'monthly', priority: '0.8' },
   { path: '/edicao-de-lancamento', changefreq: 'yearly', priority: '0.5' },
   { path: '/assinar', changefreq: 'monthly', priority: '0.9' },
+  { path: '/certificado', changefreq: 'monthly', priority: '0.7' },
   { path: '/termos-de-uso', changefreq: 'yearly', priority: '0.2' },
   { path: '/politica-de-privacidade', changefreq: 'yearly', priority: '0.2' },
   { path: '/politica-de-cancelamento', changefreq: 'yearly', priority: '0.2' },
