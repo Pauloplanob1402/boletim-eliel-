@@ -454,3 +454,13 @@ Notas do Brevo:
 
 ## Manter o Supabase gratuito ativo
 O plano gratuito pausa o projeto após 7 dias sem uso. O workflow `.github/workflows/keep-supabase-alive.yml` consulta o banco a cada 3 dias para evitar isso. Para funcionar: (1) rode `supabase/migration_005_keep_alive.sql` no SQL Editor; (2) no GitHub, em Settings > Secrets and variables > Actions > Secrets, crie `SUPABASE_URL` e `SUPABASE_ANON_KEY` (os mesmos valores de `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY`); (3) na aba Actions, rode "Keep Supabase Alive" uma vez para testar.
+
+---
+
+## Certificados com código (/certificado)
+
+- `supabase/migration_006_certificates.sql`: rode uma vez no SQL Editor do Supabase.
+- `/admin/certificados`: gera códigos (SM-XXXX-XXXX) por título: leitor, embaixador ou apoiador.
+- `/certificado`: a pessoa digita código + nome e baixa o certificado (PNG/PDF). O nome fica gravado no código.
+- `/certificado/verificar`: confere se um código é de um certificado verdadeiro.
+- Arquivos: `lib/certificate/draw.js` (3 modelos visuais), `lib/certificate/codes.js`, `pages/api/certificate/*`, `pages/api/admin/certificate-codes.js`.

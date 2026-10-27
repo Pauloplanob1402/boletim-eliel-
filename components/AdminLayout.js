@@ -11,6 +11,7 @@ const MENU = [
   { href: '/admin/newsletters', label: 'Newsletters' },
   { href: '/admin/envios', label: 'Envios' },
   { href: '/admin/receitas', label: 'Receitas' },
+  { href: '/admin/certificados', label: 'Certificados' },
 ];
 
 export default function AdminLayout({ title, adminUser, children }) {
