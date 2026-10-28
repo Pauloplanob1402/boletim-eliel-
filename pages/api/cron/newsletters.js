@@ -4,6 +4,7 @@
 // checamos isso para impedir que qualquer pessoa dispare envios batendo nesta URL.
 import { createAdminClient } from '../../../lib/supabase/adminClient';
 import { dispatchNewsletterNow } from '../../../lib/newsletter/dispatch';
+import { emailProvider } from '../../../lib/email/provider';
 
 export default async function handler(req, res) {
   const expected = process.env.CRON_SECRET;
@@ -16,6 +17,15 @@ export default async function handler(req, res) {
 
   const admin = createAdminClient();
   const nowIso = new Date().toISOString();
+
+  // Assinaturas por Pix não renovam sozinhas: vencido o prazo, o acesso acaba.
+  // Falha aqui não pode impedir o envio das newsletters agendadas.
+  let expiredPix = 0;
+  try {
+    expiredPix = await expirePixSubscriptions(admin, nowIso);
+  } catch (err) {
+    console.error('Falha ao expirar assinaturas Pix:', err.message);
+  }
 
   const { data: due, error } = await admin
     .from('newsletters')
@@ -53,5 +63,34 @@ export default async function handler(req, res) {
     }
   }
 
-  return res.status(200).json({ processed: results.length, results });
+  return res.status(200).json({ processed: results.length, expiredPix, results });
+}
+
+async function expirePixSubscriptions(admin, nowIso) {
+  const { data: expired, error } = await admin
+    .from('subscriptions')
+    .select('id, user_id, is_gift, gift_recipient_email')
+    .eq('billing_type', 'pix')
+    .eq('status', 'active')
+    .lt('valid_until', nowIso);
+  if (error) throw new Error(error.message);
+
+  for (const sub of expired || []) {
+    await admin.from('subscriptions').update({ status: 'expired' }).eq('id', sub.id);
+
+    let email = sub.is_gift ? sub.gift_recipient_email : null;
+    if (!email) {
+      const { data: payer } = await admin.from('profiles').select('email').eq('id', sub.user_id).maybeSingle();
+      email = payer?.email;
+    }
+    if (!email) continue;
+
+    await admin.from('newsletter_subscribers').update({ status: 'inactive', updated_at: nowIso }).eq('email', email);
+    try {
+      await emailProvider.removeContact(email);
+    } catch (err) {
+      console.error('Falha ao remover contato expirado do provedor de e-mail:', err.message);
+    }
+  }
+  return (expired || []).length;
 }

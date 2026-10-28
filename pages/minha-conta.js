@@ -248,7 +248,18 @@ export default function MinhaContaPage() {
                       </span>
                     </div>
                   </div>
-                  {subscription.next_billing_at && (
+                  {subscription.billing_type === 'pix' && subscription.valid_until && (
+                    <div style={{ marginBottom: 14 }}>
+                      <span style={{ fontFamily: 'var(--mono)', fontSize: '.68rem', textTransform: 'uppercase', color: 'var(--dim)' }}>
+                        Acesso até
+                      </span>
+                      <div>{new Date(subscription.valid_until).toLocaleDateString('pt-BR')} (pagamento por Pix, não renova sozinho)</div>
+                      <a href="/assinar?metodo=pix" style={{ textDecoration: 'underline', fontSize: '.9rem' }}>
+                        Renovar com Pix
+                      </a>
+                    </div>
+                  )}
+                  {subscription.next_billing_at && subscription.billing_type !== 'pix' && (
                     <div style={{ marginBottom: 14 }}>
                       <span style={{ fontFamily: 'var(--mono)', fontSize: '.68rem', textTransform: 'uppercase', color: 'var(--dim)' }}>
                         Próxima cobrança

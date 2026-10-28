@@ -7,6 +7,7 @@ import { getPayment, getSubscription, verifyWebhookSignature, calculateRevenueSp
 import { emailProvider } from '../../../lib/email/provider';
 import { REVENUE_SPLIT_TABLE } from '../../../lib/newsletter/revenue';
 import { buildGiftWelcomeEmailHtml } from '../../../lib/newsletter/emailTemplate';
+import { processPixPayment } from '../../../lib/pix/process';
 
 export const config = {
   api: { bodyParser: true },
@@ -54,11 +55,16 @@ export default async function handler(req, res) {
 }
 
 async function handlePaymentEvent(admin, paymentId) {
+  const payment = await getPayment(paymentId); // fonte da verdade — nunca confiar no webhook cru
+
+  // Pagamentos Pix avulsos (external_reference "pix:<id da assinatura>") têm
+  // fluxo próprio: o mesmo pagamento chega pendente e depois aprovado.
+  const pix = await processPixPayment(admin, payment);
+  if (pix.handled) return;
+
   // Idempotência: se este pagamento já foi registrado, não faz nada de novo.
   const { data: existing } = await admin.from('payments').select('id').eq('mp_payment_id', String(paymentId)).maybeSingle();
   if (existing) return;
-
-  const payment = await getPayment(paymentId); // fonte da verdade — nunca confiar no webhook cru
   const preapprovalId = payment.metadata?.preapproval_id || payment.external_reference;
 
   const { data: subscription } = await admin

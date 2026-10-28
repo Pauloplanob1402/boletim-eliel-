@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import SiteLayout from '../components/SiteLayout';
 import { createAdminClient } from '../lib/supabase/adminClient';
@@ -25,6 +25,7 @@ export default function AssinarPage({ subscriberCount }) {
     nome: '',
     email: '',
     plano: 'anual',
+    metodo: 'cartao', // 'cartao' (renova sozinho) | 'pix' (pagamento único)
     aceitaTermos: false,
     querNewsletter: true,
     isGift: false,
@@ -34,6 +35,45 @@ export default function AssinarPage({ subscriberCount }) {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [pix, setPix] = useState(null); // dados do Pix gerado
+  const [pixStatus, setPixStatus] = useState('waiting'); // waiting | approved | failed
+  const [copied, setCopied] = useState(false);
+
+  // Link de renovação (/assinar?metodo=pix) já abre com o Pix selecionado.
+  useEffect(() => {
+    if (router.isReady && router.query.metodo === 'pix') {
+      setForm((f) => ({ ...f, metodo: 'pix' }));
+    }
+  }, [router.isReady, router.query.metodo]);
+
+  // Depois de gerar o Pix, consulta o pagamento a cada 4 s (até 30 min).
+  useEffect(() => {
+    if (!pix?.payment_id || pixStatus !== 'waiting') return undefined;
+    let ticks = 0;
+    const timer = setInterval(async () => {
+      ticks += 1;
+      if (ticks > 450) return clearInterval(timer);
+      try {
+        const res = await fetch(`/api/pix/status?payment_id=${pix.payment_id}`);
+        const data = await res.json();
+        if (data.status === 'approved') setPixStatus('approved');
+        else if (['rejected', 'cancelled', 'refunded', 'charged_back'].includes(data.status)) setPixStatus('failed');
+      } catch {
+        // falha de rede momentânea: tenta de novo no próximo ciclo
+      }
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [pix, pixStatus]);
+
+  async function copyPixCode() {
+    try {
+      await navigator.clipboard.writeText(pix.qr_code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      setError('Não foi possível copiar. Selecione o código e copie manualmente.');
+    }
+  }
 
   function update(field, value) {
     setForm((f) => ({ ...f, [field]: value }));
@@ -58,6 +98,24 @@ export default function AssinarPage({ subscriberCount }) {
 
     setLoading(true);
     try {
+      if (form.metodo === 'pix') {
+        const pixRes = await fetch('/api/pix/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(form),
+        });
+        const pixData = await pixRes.json();
+        if (!pixRes.ok) {
+          setError(pixData?.error || 'Não foi possível gerar o Pix. Tente novamente.');
+          setLoading(false);
+          return;
+        }
+        setPixStatus('waiting');
+        setPix(pixData);
+        setLoading(false);
+        return;
+      }
+
       const res = await fetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -119,6 +177,69 @@ export default function AssinarPage({ subscriberCount }) {
 
       <section className="tight">
         <div className="wrap">
+{pix ? (
+            <div style={{ maxWidth: 520, border: '1px solid var(--line)', background: 'var(--bg2)', padding: 28 }}>
+              {pixStatus === 'approved' ? (
+                <>
+                  <span className="eyebrow">Pagamento confirmado</span>
+                  <h2 style={{ fontSize: '1.5rem', margin: '4px 0 12px' }}>Pronto, você está dentro.</h2>
+                  <p className="lede" style={{ fontSize: '.98rem' }}>
+                    {form.isGift
+                      ? 'O presente está ativo e a pessoa será avisada por e-mail.'
+                      : 'Seu acesso está ativo e você recebe a próxima edição na quarta ou na sexta.'}{' '}
+                    Para ver o arquivo e gerenciar o plano, entre em Minha Conta com o e-mail {form.email}.
+                  </p>
+                  <a className="btn block" href="/minha-conta" style={{ marginTop: 14 }}>
+                    Ir para Minha Conta
+                  </a>
+                </>
+              ) : pixStatus === 'failed' ? (
+                <>
+                  <span className="eyebrow">Pagamento não concluído</span>
+                  <p className="lede" style={{ fontSize: '.98rem' }}>
+                    O Pix foi recusado ou cancelado. Nada foi cobrado de você.
+                  </p>
+                  <button
+                    type="button"
+                    className="btn block"
+                    onClick={() => {
+                      setPix(null);
+                      setPixStatus('waiting');
+                    }}
+                  >
+                    Tentar de novo
+                  </button>
+                </>
+              ) : (
+                <>
+                  <span className="eyebrow">Pague com Pix</span>
+                  <h2 style={{ fontSize: '1.4rem', margin: '4px 0 12px' }}>
+                    R$ {Number(pix.amount).toFixed(2).replace('.', ',')} — Plano {form.plano === 'anual' ? 'Anual' : 'Mensal'}
+                  </h2>
+                  {pix.qr_code_base64 && (
+                    <img
+                      src={`data:image/png;base64,${pix.qr_code_base64}`}
+                      alt="QR Code do Pix"
+                      width={220}
+                      height={220}
+                      style={{ display: 'block', background: '#fff', padding: 8, border: '1px solid var(--line)' }}
+                    />
+                  )}
+                  <p className="lede" style={{ fontSize: '.92rem', margin: '14px 0 8px' }}>
+                    Abra o app do seu banco, escolha Pix e leia o QR Code. Ou use o Pix copia e cola:
+                  </p>
+                  <textarea readOnly rows={3} value={pix.qr_code} onFocus={(e) => e.target.select()} style={{ width: '100%', fontFamily: 'var(--mono)', fontSize: '.72rem' }} />
+                  <button type="button" className="btn block" onClick={copyPixCode} style={{ marginTop: 10 }}>
+                    {copied ? 'Código copiado ✓' : 'Copiar código Pix'}
+                  </button>
+                  {error && <div className="admin-alert error" style={{ marginTop: 10 }}>{error}</div>}
+                  <div className="trust-note" style={{ marginTop: 14 }}>
+                    Aguardando o pagamento… esta tela atualiza sozinha assim que o Pix for confirmado.
+                  </div>
+                </>
+              )}
+            </div>
+          ) : (
           <form onSubmit={handleSubmit}>
             <div className="plans" style={{ marginBottom: 20, gridTemplateColumns: '1fr 1fr', maxWidth: 480 }}>
               <label
@@ -234,6 +355,28 @@ export default function AssinarPage({ subscriberCount }) {
               </label>
             </div>
 
+            <div style={{ maxWidth: 520, marginBottom: 28 }}>
+              <span className="eyebrow">Forma de pagamento</span>
+              <div className="plans" style={{ gridTemplateColumns: '1fr 1fr', marginTop: 10, marginBottom: 0 }}>
+                <label
+                  className="plan-card"
+                  style={{ cursor: 'pointer', padding: '18px 20px', borderColor: form.metodo === 'cartao' ? 'var(--red)' : undefined }}
+                >
+                  <input type="radio" name="metodo" checked={form.metodo === 'cartao'} onChange={() => update('metodo', 'cartao')} style={{ display: 'none' }} />
+                  <h3 style={{ fontSize: '1rem' }}>Cartão de crédito</h3>
+                  <div className="per">renova sozinho</div>
+                </label>
+                <label
+                  className="plan-card"
+                  style={{ cursor: 'pointer', padding: '18px 20px', borderColor: form.metodo === 'pix' ? 'var(--red)' : undefined }}
+                >
+                  <input type="radio" name="metodo" checked={form.metodo === 'pix'} onChange={() => update('metodo', 'pix')} style={{ display: 'none' }} />
+                  <h3 style={{ fontSize: '1rem' }}>Pix</h3>
+                  <div className="per">pagamento único</div>
+                </label>
+              </div>
+            </div>
+
             <div style={{ maxWidth: 520 }}>
               {form.isGift && (
                 <div className="trust-note" style={{ marginBottom: 14 }}>
@@ -304,13 +447,17 @@ export default function AssinarPage({ subscriberCount }) {
 
               <button type="submit" className="btn block" disabled={loading}>
                 {loading
-                  ? 'Preparando checkout…'
+                  ? form.metodo === 'pix' ? 'Gerando o Pix…' : 'Preparando checkout…'
+                  : form.metodo === 'pix'
+                  ? `Gerar Pix — Plano ${form.plano === 'anual' ? 'Anual' : 'Mensal'}`
                   : form.isGift
                   ? `Presentear — Plano ${form.plano === 'anual' ? 'Anual' : 'Mensal'}`
                   : `Ir para o pagamento — Plano ${form.plano === 'anual' ? 'Anual' : 'Mensal'}`}
               </button>
               <div className="trust-note" style={{ marginTop: 14 }}>
-                Você será redirecionado ao Mercado Pago para concluir o pagamento com segurança.
+                {form.metodo === 'pix'
+                  ? `Pagamento único, sem renovação automática: o acesso vale por ${form.plano === 'anual' ? '12 meses' : '30 dias'}. Para continuar depois, é só pagar de novo por aqui, com o mesmo e-mail.`
+                  : 'Você será redirecionado ao Mercado Pago para concluir o pagamento com segurança.'}
               </div>
               <div className="trust-note" style={{ marginTop: 10 }}>
                 Depois de assinar, confira o spam e adicione{' '}
@@ -321,6 +468,7 @@ export default function AssinarPage({ subscriberCount }) {
               </div>
             </div>
           </form>
+          )}
         </div>
       </section>
 

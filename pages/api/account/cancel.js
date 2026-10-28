@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   const admin = createAdminClient();
   const { data: subscription, error } = await admin
     .from('subscriptions')
-    .select('id, mp_preapproval_id, status')
+    .select('id, mp_preapproval_id, status, billing_type')
     .eq('user_id', auth.user.id)
     .order('created_at', { ascending: false })
     .limit(1)
@@ -22,6 +22,13 @@ export default async function handler(req, res) {
 
   if (error || !subscription) return res.status(404).json({ error: 'Assinatura não encontrada.' });
   if (subscription.status !== 'active') return res.status(400).json({ error: 'Esta assinatura já não está ativa.' });
+
+  // Assinatura por Pix não renova sozinha: não há nada a cancelar no Mercado
+  // Pago. Só registramos o pedido; o acesso vale até o fim do período pago.
+  if (subscription.billing_type === 'pix') {
+    await admin.from('subscriptions').update({ canceled_at: new Date().toISOString() }).eq('id', subscription.id);
+    return res.status(200).json({ ok: true });
+  }
 
   try {
     await cancelSubscription(subscription.mp_preapproval_id);
