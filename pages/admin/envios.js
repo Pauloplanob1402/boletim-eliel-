@@ -1,6 +1,7 @@
 import AdminLayout from '../../components/AdminLayout';
 import { requireAdmin } from '../../lib/supabase/requireAdmin';
 import { createAdminClient } from '../../lib/supabase/adminClient';
+import { newsletterStatusLabel } from '../../lib/statusLabels';
 
 export async function getServerSideProps(context) {
   const adminResult = await requireAdmin(context);
@@ -60,7 +61,7 @@ export default function EnviosPage({ adminUser, newsletters, sendsByNewsletter }
                 <tr key={n.id}>
                   <td className="strong">{n.title}</td>
                   <td>
-                    <span className={`badge ${STATUS_BADGE[n.status] || 'neutral'}`}>{n.status}</span>
+                    <span className={`badge ${STATUS_BADGE[n.status] || 'neutral'}`}>{newsletterStatusLabel(n.status)}</span>
                   </td>
                   <td>{counts.sent}</td>
                   <td>{counts.failed}</td>

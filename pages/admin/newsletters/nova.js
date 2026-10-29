@@ -1055,7 +1055,7 @@ function ContentMapReminder() {
   );
 }
 
-const STATUS_LABEL = { draft: 'rascunho', scheduled: 'agendada', sending: 'enviando', sent: 'enviada' };
+const STATUS_LABEL = { draft: 'rascunho', scheduled: 'agendada', sending: 'enviando', sent: 'enviada', failed: 'falhou' };
 const DIALOG_TITLES = { link: 'Inserir link', button: 'Inserir botão', image: 'Inserir imagem', youtube: 'Inserir vídeo do YouTube' };
 
 function dlgEnter(fn) {

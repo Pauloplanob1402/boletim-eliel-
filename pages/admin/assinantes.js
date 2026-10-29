@@ -1,6 +1,7 @@
 import AdminLayout from '../../components/AdminLayout';
 import { requireAdmin } from '../../lib/supabase/requireAdmin';
 import { createAdminClient } from '../../lib/supabase/adminClient';
+import { subscriberStatusLabel } from '../../lib/statusLabels';
 
 export async function getServerSideProps(context) {
   const adminResult = await requireAdmin(context);
@@ -49,7 +50,7 @@ export default function AssinantesPage({ adminUser, assinantes, mensagens }) {
                 <td className="strong">{a.nome || '—'}</td>
                 <td>{a.email}</td>
                 <td>
-                  <span className={`badge ${a.status === 'active' ? 'ok' : 'neutral'}`}>{a.status}</span>
+                  <span className={`badge ${a.status === 'active' ? 'ok' : 'neutral'}`}>{subscriberStatusLabel(a.status)}</span>
                 </td>
                 <td>{new Date(a.created_at).toLocaleDateString('pt-BR')}</td>
               </tr>

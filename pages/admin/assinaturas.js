@@ -1,6 +1,7 @@
 import AdminLayout from '../../components/AdminLayout';
 import { requireAdmin } from '../../lib/supabase/requireAdmin';
 import { createAdminClient } from '../../lib/supabase/adminClient';
+import { subscriptionStatusLabel } from '../../lib/statusLabels';
 
 export async function getServerSideProps(context) {
   const adminResult = await requireAdmin(context);
@@ -46,7 +47,7 @@ export default function AssinaturasPage({ adminUser, assinaturas }) {
                 <td className="strong">{s.profiles?.nome || s.profiles?.email || '—'}</td>
                 <td style={{ textTransform: 'capitalize' }}>{s.plan_id}</td>
                 <td>
-                  <span className={`badge ${STATUS_BADGE[s.status] || 'neutral'}`}>{s.status}</span>
+                  <span className={`badge ${STATUS_BADGE[s.status] || 'neutral'}`}>{subscriptionStatusLabel(s.status)}</span>
                 </td>
                 <td>{Number(s.amount || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
                 <td>{s.next_billing_at ? new Date(s.next_billing_at).toLocaleDateString('pt-BR') : '—'}</td>

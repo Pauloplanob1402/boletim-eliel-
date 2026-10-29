@@ -1,6 +1,7 @@
 import AdminLayout from '../../components/AdminLayout';
 import { requireAdmin } from '../../lib/supabase/requireAdmin';
 import { createAdminClient } from '../../lib/supabase/adminClient';
+import { paymentStatusLabel } from '../../lib/statusLabels';
 
 export async function getServerSideProps(context) {
   const adminResult = await requireAdmin(context);
@@ -38,7 +39,7 @@ export default function PagamentosPage({ adminUser, pagamentos }) {
                 <td className="strong">{p.profiles?.nome || p.profiles?.email || '—'}</td>
                 <td>{Number(p.amount || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
                 <td>
-                  <span className={`badge ${STATUS_BADGE[p.status] || 'neutral'}`}>{p.status}</span>
+                  <span className={`badge ${STATUS_BADGE[p.status] || 'neutral'}`}>{paymentStatusLabel(p.status)}</span>
                 </td>
                 <td style={{ textTransform: 'capitalize' }}>{p.payment_method || '—'}</td>
                 <td>{p.paid_at ? new Date(p.paid_at).toLocaleString('pt-BR') : '—'}</td>
