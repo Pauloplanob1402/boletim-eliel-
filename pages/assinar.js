@@ -32,12 +32,15 @@ export default function AssinarPage({ subscriberCount }) {
     giftRecipientName: '',
     giftRecipientEmail: '',
     giftMessage: '',
+    cupom: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [pix, setPix] = useState(null); // dados do Pix gerado
   const [pixStatus, setPixStatus] = useState('waiting'); // waiting | approved | failed
   const [copied, setCopied] = useState(false);
+  const [cupomInfo, setCupomInfo] = useState(null); // { ok, percentOff, msg }
+  const [cupomLoading, setCupomLoading] = useState(false);
 
   // Link de renovação (/assinar?metodo=pix) já abre com o Pix selecionado.
   useEffect(() => {
@@ -45,6 +48,17 @@ export default function AssinarPage({ subscriberCount }) {
       setForm((f) => ({ ...f, metodo: 'pix' }));
     }
   }, [router.isReady, router.query.metodo]);
+
+  // Link com cupom (/assinar?cupom=PRIMEIROS274) já preenche e confere o código.
+  useEffect(() => {
+    const q = router.isReady && router.query.cupom;
+    if (q && typeof q === 'string') {
+      const codigo = q.trim().toUpperCase();
+      setForm((f) => ({ ...f, cupom: codigo }));
+      aplicarCupom(codigo);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.isReady, router.query.cupom]);
 
   // Depois de gerar o Pix, consulta o pagamento a cada 4 s (até 30 min).
   useEffect(() => {
@@ -77,6 +91,32 @@ export default function AssinarPage({ subscriberCount }) {
 
   function update(field, value) {
     setForm((f) => ({ ...f, [field]: value }));
+  }
+
+  // Só confere o cupom e mostra o novo preço; o desconto real é calculado no servidor.
+  async function aplicarCupom(codigoParam) {
+    const codigo = String(codigoParam ?? form.cupom).trim();
+    if (!codigo) {
+      setCupomInfo({ ok: false, msg: 'Digite o código do cupom.' });
+      return;
+    }
+    setCupomLoading(true);
+    try {
+      const res = await fetch('/api/coupon/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cupom: codigo }),
+      });
+      const data = await res.json();
+      if (res.ok && data.valid) {
+        setCupomInfo({ ok: true, percentOff: data.percentOff, msg: `Cupom aplicado: ${data.percentOff}% de desconto.` });
+      } else {
+        setCupomInfo({ ok: false, msg: data?.error || 'Cupom inválido ou expirado.' });
+      }
+    } catch {
+      setCupomInfo({ ok: false, msg: 'Não foi possível validar o cupom agora. Tente de novo.' });
+    }
+    setCupomLoading(false);
   }
 
   async function handleSubmit(e) {
@@ -138,6 +178,12 @@ export default function AssinarPage({ subscriberCount }) {
       setLoading(false);
     }
   }
+
+  // Só para exibir: o valor cobrado é sempre calculado no servidor.
+  const PRECOS = { mensal: 27.4, anual: 220 };
+  const desconto = cupomInfo?.ok ? cupomInfo.percentOff : 0;
+  const comDesconto = (valor) => Math.round(valor * (100 - desconto)) / 100;
+  const brl = (valor) => valor.toFixed(2).replace('.', ',');
 
   return (
     <SiteLayout
@@ -312,7 +358,10 @@ export default function AssinarPage({ subscriberCount }) {
                 />
                 <h3>Plano Mensal</h3>
                 <div className="price">
-                  R$ <span>27,40</span>
+                  {desconto > 0 && (
+                    <s style={{ fontSize: '.45em', opacity: 0.55, marginRight: 8 }}>R$ {brl(PRECOS.mensal)}</s>
+                  )}
+                  R$ <span>{brl(comDesconto(PRECOS.mensal))}</span>
                 </div>
                 <div className="per">por mês · cancele quando quiser</div>
                 <ul>
@@ -337,10 +386,13 @@ export default function AssinarPage({ subscriberCount }) {
                 />
                 <h3>Plano Anual</h3>
                 <div className="price">
-                  R$ <span>220</span>
+                  {desconto > 0 && (
+                    <s style={{ fontSize: '.45em', opacity: 0.55, marginRight: 8 }}>R$ {PRECOS.anual}</s>
+                  )}
+                  R$ <span>{desconto > 0 ? brl(comDesconto(PRECOS.anual)) : PRECOS.anual}</span>
                 </div>
                 <div className="per">
-                  por ano · equivale a <span>R$18,33</span>/mês
+                  por ano · equivale a <span>{`R$${brl(comDesconto(PRECOS.anual) / 12)}`}</span>/mês
                 </div>
                 <ul>
                   <li>
@@ -353,6 +405,40 @@ export default function AssinarPage({ subscriberCount }) {
                   {form.plano === 'anual' ? 'Selecionado ✓' : 'Escolher plano anual'}
                 </span>
               </label>
+            </div>
+
+            <div style={{ maxWidth: 520, marginBottom: 28 }}>
+              <span className="eyebrow">Cupom de desconto</span>
+              <div style={{ display: 'flex', gap: 10, marginTop: 10, alignItems: 'flex-start' }}>
+                <div className="form-field" style={{ flex: 1, marginBottom: 0 }}>
+                  <input
+                    id="cupom"
+                    type="text"
+                    value={form.cupom}
+                    onChange={(e) => {
+                      update('cupom', e.target.value.toUpperCase());
+                      setCupomInfo(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        aplicarCupom();
+                      }
+                    }}
+                    placeholder="Tem um cupom? Digite o código"
+                    autoComplete="off"
+                    autoCapitalize="characters"
+                  />
+                </div>
+                <button type="button" className="btn ghost" onClick={() => aplicarCupom()} disabled={cupomLoading}>
+                  {cupomLoading ? 'Validando…' : 'Aplicar'}
+                </button>
+              </div>
+              {cupomInfo && (
+                <div className={`admin-alert ${cupomInfo.ok ? 'success' : 'error'}`} style={{ marginTop: 10, marginBottom: 0 }}>
+                  {cupomInfo.msg}
+                </div>
+              )}
             </div>
 
             <div style={{ maxWidth: 520, marginBottom: 28 }}>

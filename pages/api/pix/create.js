@@ -8,11 +8,12 @@ import { createAdminClient } from '../../../lib/supabase/adminClient';
 import { createPixPayment } from '../../../lib/mercadopago/client';
 import { findOrCreateProfile, upsertNewsletterSubscriber } from '../../../lib/subscription/helpers';
 import { PIX_PLANS } from '../../../lib/pix/process';
+import { resolveCheckoutDiscount, applyDiscount } from '../../../lib/coupons';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Método não permitido.' });
 
-  const { nome, email, plano, aceitaTermos, querNewsletter, isGift, giftRecipientName, giftRecipientEmail, giftMessage } =
+  const { nome, email, plano, aceitaTermos, querNewsletter, isGift, giftRecipientName, giftRecipientEmail, giftMessage, cupom } =
     req.body || {};
 
   if (!nome || !email || !aceitaTermos) {
@@ -29,6 +30,11 @@ export default async function handler(req, res) {
 
   try {
     const payerUserId = await findOrCreateProfile(admin, { email, nome, querNewsletter, nowIso });
+
+    // Cupom: reserva a vaga (ou usa o desconto já conquistado) e calcula o valor final no servidor.
+    const discount = await resolveCheckoutDiscount(admin, { cupom, userId: payerUserId });
+    if (!discount.ok) return res.status(400).json({ error: discount.message });
+    const finalAmount = applyDiscount(plan.amount, discount.percentOff);
 
     if (isGift) {
       const recipientUserId = await findOrCreateProfile(admin, {
@@ -68,7 +74,7 @@ export default async function handler(req, res) {
         .maybeSingle();
       if (existing) {
         subscriptionId = existing.id;
-        await admin.from('subscriptions').update({ plan_id: plano, amount: plan.amount }).eq('id', existing.id);
+        await admin.from('subscriptions').update({ plan_id: plano, amount: finalAmount }).eq('id', existing.id);
       }
     }
 
@@ -80,7 +86,7 @@ export default async function handler(req, res) {
           plan_id: plano,
           status: 'pending',
           billing_type: 'pix',
-          amount: plan.amount,
+          amount: finalAmount,
           currency: 'BRL',
           is_gift: !!isGift,
           gift_sender_name: isGift ? nome : null,
@@ -95,7 +101,7 @@ export default async function handler(req, res) {
     }
 
     const payment = await createPixPayment({
-      amount: plan.amount,
+      amount: finalAmount,
       description: plan.reason,
       payerEmail: email,
       payerName: nome,
@@ -110,7 +116,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       payment_id: payment.id,
-      amount: plan.amount,
+      amount: finalAmount,
       qr_code: qr.qr_code,
       qr_code_base64: qr.qr_code_base64,
       ticket_url: qr.ticket_url || null,

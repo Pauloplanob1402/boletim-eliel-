@@ -464,3 +464,16 @@ O plano gratuito pausa o projeto após 7 dias sem uso. O workflow `.github/workf
 - `/certificado`: a pessoa digita código + nome e baixa o certificado (PNG/PDF). O nome fica gravado no código.
 - `/certificado/verificar`: confere se um código é de um certificado verdadeiro.
 - Arquivos: `lib/certificate/draw.js` (3 modelos visuais), `lib/certificate/codes.js`, `pages/api/certificate/*`, `pages/api/admin/certificate-codes.js`.
+
+---
+
+## Cupom de desconto (PRIMEIROS274)
+
+- `supabase/migration_008_coupons.sql`: rode uma vez no SQL Editor do Supabase. Cria as tabelas `coupons` e `coupon_redemptions`, a função `reserve_coupon` e já cadastra o cupom **PRIMEIROS274: 10% de desconto para as 274 primeiras pessoas**.
+- Na tela `/assinar` há um campo de cupom (e o link `/assinar?cupom=PRIMEIROS274` já abre com o código preenchido). Vale para os planos mensal e anual, no cartão e no Pix.
+- O preço final é calculado **no servidor** (`lib/coupons.js`, usado por `/api/subscribe` e `/api/pix/create`); o navegador só mostra o preço.
+- A vaga é **reservada** ao gerar o checkout (fica guardada por 24h) e vira **definitiva** quando o pagamento é confirmado (webhook do cartão e processamento do Pix). Reserva que ninguém pagou em 24h libera a vaga. Nunca passa de 274 pessoas.
+- Quem usou o cupom mantém os 10% nas próximas cobranças (cartão: o valor da assinatura já nasce com desconto; Pix: o desconto vale na renovação com o mesmo e-mail).
+- Acompanhar vagas: `select status, count(*) from coupon_redemptions where coupon_code = 'PRIMEIROS274' group by status;`
+- Mudar o limite ou o desconto: `update coupons set max_redemptions = 300 where code = 'PRIMEIROS274';` (idem `percent_off`, `active`).
+

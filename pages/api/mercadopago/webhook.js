@@ -8,6 +8,7 @@ import { emailProvider } from '../../../lib/email/provider';
 import { REVENUE_SPLIT_TABLE } from '../../../lib/newsletter/revenue';
 import { buildGiftWelcomeEmailHtml } from '../../../lib/newsletter/emailTemplate';
 import { processPixPayment } from '../../../lib/pix/process';
+import { markCouponRedeemed } from '../../../lib/coupons';
 
 export const config = {
   api: { bodyParser: true },
@@ -154,6 +155,9 @@ async function handleSubscriptionEvent(admin, preapprovalId) {
   }
 
   if (isActive) {
+    // Se a assinatura usou cupom, a vaga reservada vira definitiva.
+    await markCouponRedeemed(admin, localSub.user_id);
+
     // Idempotência do e-mail de presente: só dispara se este era o primeiro
     // ativamento (senão um webhook duplicado reenviaria o aviso).
     const { data: currentSubRow } = await admin

@@ -14,6 +14,7 @@ import { createSubscription } from '../../lib/mercadopago/client';
 import { emailProvider } from '../../lib/email/provider';
 import { buildWelcomeEmailHtml } from '../../lib/newsletter/emailTemplate';
 import { findOrCreateProfile, upsertNewsletterSubscriber } from '../../lib/subscription/helpers';
+import { resolveCheckoutDiscount, applyDiscount } from '../../lib/coupons';
 
 const PLAN_CONFIG = {
   mensal: { amount: 27.4, frequency: 1, frequencyType: 'months', reason: 'Sem Mimimi — Plano Mensal' },
@@ -33,6 +34,7 @@ export default async function handler(req, res) {
     giftRecipientName,
     giftRecipientEmail,
     giftMessage,
+    cupom,
   } = req.body || {};
 
   if (!nome || !email || !aceitaTermos) {
@@ -51,6 +53,12 @@ export default async function handler(req, res) {
     // 1) Perfil de quem paga (sempre existe — é quem faz login para gerenciar
     // a assinatura/cobrança, mesmo em modo presente).
     const payerUserId = await findOrCreateProfile(admin, { email, nome, querNewsletter, nowIso });
+
+    // Cupom: reserva a vaga (ou usa o desconto que a pessoa já conquistou) e
+    // calcula o valor final AQUI no servidor.
+    const discount = await resolveCheckoutDiscount(admin, { cupom, userId: payerUserId });
+    if (!discount.ok) return res.status(400).json({ error: discount.message });
+    const finalAmount = applyDiscount(planConfig.amount, discount.percentOff);
 
     if (isGift) {
       // 2a) Perfil de quem RECEBE o presente — para poder logar em
@@ -85,7 +93,7 @@ export default async function handler(req, res) {
       reason: planConfig.reason,
       frequency: planConfig.frequency,
       frequencyType: planConfig.frequencyType,
-      amount: planConfig.amount,
+      amount: finalAmount,
       payerEmail: email,
       externalReference: payerUserId,
     });
@@ -99,7 +107,7 @@ export default async function handler(req, res) {
       mp_preapproval_id: mpSubscription.id,
       plan_id: plano,
       status: 'pending',
-      amount: planConfig.amount,
+      amount: finalAmount,
       currency: 'BRL',
       is_gift: !!isGift,
       gift_sender_name: isGift ? nome : null,
