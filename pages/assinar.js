@@ -180,7 +180,7 @@ export default function AssinarPage({ subscriberCount }) {
   }
 
   // Só para exibir: o valor cobrado é sempre calculado no servidor.
-  const PRECOS = { mensal: 27.4, anual: 220 };
+  const PRECOS = { mensal: 27.4, anual: 274 };
   const desconto = cupomInfo?.ok ? cupomInfo.percentOff : 0;
   const comDesconto = (valor) => Math.round(valor * (100 - desconto)) / 100;
   const brl = (valor) => valor.toFixed(2).replace('.', ',');

@@ -127,13 +127,13 @@ O Supabase não deixa criar usuário de Auth só com SQL. Faça assim:
        "back_url": "https://SEUDOMINIO.com.br/minha-conta"
      }'
 
-   # Plano anual — R$ 220,00/ano (equivalente a R$18,33/mês — 10x o valor mensal)
+   # Plano anual — R$ 274,00/ano (equivalente a R$22,83/mês — 10x o valor mensal)
    curl -X POST 'https://api.mercadopago.com/preapproval_plan' \
      -H 'Authorization: Bearer SEU_ACCESS_TOKEN' \
      -H 'Content-Type: application/json' \
      -d '{
        "reason": "Sem Mimimi — Plano Anual",
-       "auto_recurring": { "frequency": 12, "frequency_type": "months", "transaction_amount": 220.00, "currency_id": "BRL" },
+       "auto_recurring": { "frequency": 12, "frequency_type": "months", "transaction_amount": 274.00, "currency_id": "BRL" },
        "back_url": "https://SEUDOMINIO.com.br/minha-conta"
      }'
    ```

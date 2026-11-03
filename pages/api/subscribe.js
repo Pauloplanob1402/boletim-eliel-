@@ -18,7 +18,7 @@ import { resolveCheckoutDiscount, applyDiscount } from '../../lib/coupons';
 
 const PLAN_CONFIG = {
   mensal: { amount: 27.4, frequency: 1, frequencyType: 'months', reason: 'Sem Mimimi — Plano Mensal' },
-  anual: { amount: 220.0, frequency: 12, frequencyType: 'months', reason: 'Sem Mimimi — Plano Anual' },
+  anual: { amount: 274.0, frequency: 12, frequencyType: 'months', reason: 'Sem Mimimi — Plano Anual' },
 };
 
 export default async function handler(req, res) {
