@@ -659,7 +659,7 @@ export default function EdicaoExemploPage() {
               Mimimi chega sabendo.
             </p>
             <p>
-              O plano custa R$ 22 por mês. Dá menos de um real por dia pela notícia sem filtro. Sem fidelidade: você
+              O plano custa R$ 27,40 por mês. Dá menos de um real por dia pela notícia sem filtro. Sem fidelidade: você
               cancela quando quiser.
             </p>
             <a href="/assinar" className="btn">

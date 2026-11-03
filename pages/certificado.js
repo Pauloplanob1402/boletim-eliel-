@@ -333,7 +333,7 @@ export default function CertificadoPage() {
             <span className="eyebrow">{baixou ? 'Seu certificado está na mão' : 'O que justifica o certificado'}</span>
             <h2>Agora receba o que faz a turma existir.</h2>
             <p className="lede">
-              Toda quarta e sexta, Tiago Pavinatto descasca o que acontece em Brasília, sem pano quente,
+              De segunda a sexta, Tiago Pavinatto descasca o que acontece em Brasília, sem pano quente,
               em cinco minutos de leitura. Quem é da turma não fica de fora da lista.
             </p>
             <div className="cta-row">

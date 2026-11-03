@@ -142,7 +142,7 @@ export default function AssinarPage({ subscriberCount }) {
   return (
     <SiteLayout
       title="Assinar — Sem Mimimi"
-      description="Assine a newsletter Sem Mimimi, de Tiago Pavinatto. Duas edições por semana, sem pano quente."
+      description="Assine a newsletter Sem Mimimi, de Tiago Pavinatto. Uma edição por dia útil, de segunda a sexta, sem pano quente."
       active="assinar"
     >
       <section className="tight">
@@ -186,7 +186,7 @@ export default function AssinarPage({ subscriberCount }) {
                   <p className="lede" style={{ fontSize: '.98rem' }}>
                     {form.isGift
                       ? 'O presente está ativo e a pessoa será avisada por e-mail.'
-                      : 'Seu acesso está ativo e você recebe a próxima edição na quarta ou na sexta.'}{' '}
+                      : 'Seu acesso está ativo e você recebe a próxima edição já no próximo dia útil.'}{' '}
                     Para ver o arquivo e gerenciar o plano, entre em Minha Conta com o e-mail {form.email}.
                   </p>
                   <a className="btn block" href="/minha-conta" style={{ marginTop: 14 }}>
@@ -312,11 +312,11 @@ export default function AssinarPage({ subscriberCount }) {
                 />
                 <h3>Plano Mensal</h3>
                 <div className="price">
-                  R$ <span>22,00</span>
+                  R$ <span>27,40</span>
                 </div>
                 <div className="per">por mês · cancele quando quiser</div>
                 <ul>
-                  <li>Duas edições por semana, toda quarta e sexta</li>
+                  <li>Uma edição por dia útil, de segunda a sexta</li>
                   <li>Nunca mais perca uma edição — o arquivo inteiro fica disponível quando você quiser reler</li>
                   <li>Sem anúncio, sem patrocínio disfarçado de matéria</li>
                 </ul>
@@ -499,7 +499,7 @@ export default function AssinarPage({ subscriberCount }) {
             <div className="faq-item">
               <dt>&quot;Vou receber spam ou e-mail todo dia?&quot;</dt>
               <dd>
-                Só duas vezes por semana, sempre às quartas e sextas. Nada de
+                Só nos dias úteis, de segunda a sexta, uma edição por dia. Nada de
                 &quot;edição bônus&quot; toda hora lotando sua caixa de entrada.
               </dd>
             </div>

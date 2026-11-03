@@ -9,7 +9,7 @@ import { createAdminClient } from '../../../lib/supabase/adminClient';
 import { createSubscription } from '../../../lib/mercadopago/client';
 
 const PLAN_CONFIG = {
-  mensal: { amount: 22.0, frequency: 1, frequencyType: 'months', reason: 'Sem Mimimi — Plano Mensal' },
+  mensal: { amount: 27.4, frequency: 1, frequencyType: 'months', reason: 'Sem Mimimi — Plano Mensal' },
   anual: { amount: 220.0, frequency: 12, frequencyType: 'months', reason: 'Sem Mimimi — Plano Anual' },
 };
 

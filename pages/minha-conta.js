@@ -287,7 +287,7 @@ export default function MinhaContaPage() {
                 <div style={{ border: '1px solid var(--line)', padding: 24, marginTop: subscription ? 16 : 20 }}>
                   <span className="eyebrow">Você recebe a newsletter</span>
                   <h2 style={{ fontSize: '1.05rem', margin: '4px 0 0' }}>
-                    {subscriberRow.status === 'active' ? 'Ativo — você recebe toda quarta e sexta' : subscriberRow.status}
+                    {subscriberRow.status === 'active' ? 'Ativo — você recebe de segunda a sexta' : subscriberRow.status}
                   </h2>
                 </div>
               )}

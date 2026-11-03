@@ -13,7 +13,7 @@ export default function TermosDeUso() {
           </p>
           <div style={{ color: 'var(--dim)', lineHeight: 1.7 }}>
             <h3>1. O serviço</h3>
-            <p>O Sem Mimimi é uma newsletter paga, enviada por e-mail duas vezes por semana, com
+            <p>O Sem Mimimi é uma newsletter paga, enviada por e-mail todos os dias úteis (de segunda a sexta), com
             conteúdo de análise e opinião de autoria de Tiago Pavinatto.</p>
             <h3>2. Assinatura e cobrança</h3>
             <p>A assinatura é recorrente (mensal ou anual) e processada pelo Mercado Pago. O

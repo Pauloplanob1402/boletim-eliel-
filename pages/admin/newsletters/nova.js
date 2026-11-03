@@ -1001,13 +1001,28 @@ function Counter({ value, ideal }) {
   );
 }
 
-// Mapa da escrita: o foco de conteúdo de cada dia de envio fixo (quarta e
+// Mapa da escrita: o foco de conteúdo de cada dia de envio fixo (segunda a
 // sexta), pra quem estiver escrevendo lembrar sem precisar abrir outro doc.
 const MAPA_ESCRITA = {
+  1: {
+    dia: 'Segunda-feira',
+    foco: 'Panorama da semana: pauta do Congresso, agenda do STF e o que está em jogo nos próximos dias.',
+    objetivo: '"O que vai mexer com o país nesta semana, antes de todo mundo comentar."',
+  },
+  2: {
+    dia: 'Terça-feira',
+    foco: 'Desdobramentos do dia anterior e movimentos de bastidor em Brasília.',
+    objetivo: '"O que aconteceu de verdade por trás da manchete de ontem."',
+  },
   3: {
     dia: 'Quarta-feira',
     foco: 'Bastidores da Câmara, comissões da semana e o que esperar do STF.',
     objetivo: '"O que está acontecendo agora e o que você precisa prestar atenção hoje."',
+  },
+  4: {
+    dia: 'Quinta-feira',
+    foco: 'Análise dos temas em votação e o que costuma sair da Câmara e do STF no fim da semana.',
+    objetivo: '"O que deve ser decidido até sexta e por que isso importa pra você."',
   },
   5: {
     dia: 'Sexta-feira',
@@ -1030,7 +1045,7 @@ function ContentMapReminder() {
       )}
       {!hoje && (
         <p style={{ margin: '0 0 10px', fontStyle: 'italic' }}>
-          Hoje não é dia de envio (quarta ou sexta). Veja abaixo o foco de cada edição pra se planejar com antecedência.
+          Hoje não é dia de envio (segunda a sexta). Veja abaixo o foco de cada edição pra se planejar com antecedência.
         </p>
       )}
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '.92rem' }}>

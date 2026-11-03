@@ -117,13 +117,13 @@ O Supabase não deixa criar usuário de Auth só com SQL. Faça assim:
 4. Crie os dois planos de assinatura (uma vez só) chamando a API — pode usar o `curl` abaixo
    trocando o token (rode isso no seu terminal, não no navegador):
    ```bash
-   # Plano mensal — R$ 22,00/mês
+   # Plano mensal — R$ 27,40/mês
    curl -X POST 'https://api.mercadopago.com/preapproval_plan' \
      -H 'Authorization: Bearer SEU_ACCESS_TOKEN' \
      -H 'Content-Type: application/json' \
      -d '{
        "reason": "Sem Mimimi — Plano Mensal",
-       "auto_recurring": { "frequency": 1, "frequency_type": "months", "transaction_amount": 22.00, "currency_id": "BRL" },
+       "auto_recurring": { "frequency": 1, "frequency_type": "months", "transaction_amount": 27.40, "currency_id": "BRL" },
        "back_url": "https://SEUDOMINIO.com.br/minha-conta"
      }'
 
@@ -304,7 +304,7 @@ e-mail (magic link) e vê a assinatura dela. Quem pagou continua sendo dono da
 cobrança e pode cancelar a qualquer momento em `/minha-conta` — lá aparece com a etiqueta
 "🎁 Presente para [nome]" em vez do card normal de assinatura.
 
-Atualização: as edições saem em dias fixos, **toda quarta e sexta** (foco de cada dia no "Mapa da escrita" do editor).
+Atualização: as edições saem em dias fixos, **de segunda a sexta (dias úteis)** (foco de cada dia no "Mapa da escrita" do editor).
 O seletor de dia preferido saiu de `/assinar` e `/minha-conta`, e a copy do site e dos e-mails foi ajustada.
 A coluna `preferred_day` continua no banco, sem uso: nenhum envio a lê.
 
