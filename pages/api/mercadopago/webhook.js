@@ -14,6 +14,8 @@ export const config = {
   api: { bodyParser: true },
 };
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
@@ -63,45 +65,119 @@ async function handlePaymentEvent(admin, paymentId) {
   const pix = await processPixPayment(admin, payment);
   if (pix.handled) return;
 
-  // Idempotência: se este pagamento já foi registrado, não faz nada de novo.
-  const { data: existing } = await admin.from('payments').select('id').eq('mp_payment_id', String(paymentId)).maybeSingle();
-  if (existing) return;
-  const preapprovalId = payment.metadata?.preapproval_id || payment.external_reference;
+  const preapprovalId = payment.metadata?.preapproval_id || null;
+  const payerUserId = payment.external_reference || null; // /api/subscribe grava o id do pagador aqui
 
-  const { data: subscription } = await admin
-    .from('subscriptions')
-    .select('id, user_id')
-    .or(`mp_preapproval_id.eq.${preapprovalId},user_id.eq.${payment.external_reference}`)
-    .maybeSingle();
+  // 1) Pelo id da assinatura no Mercado Pago (mp_preapproval_id é único).
+  let subscription = null;
+  if (preapprovalId) {
+    const { data, error } = await admin
+      .from('subscriptions')
+      .select('id, user_id')
+      .eq('mp_preapproval_id', String(preapprovalId))
+      .maybeSingle();
+    if (error) console.error('Webhook: erro ao buscar assinatura por preapproval:', error.message);
+    subscription = data || null;
+  }
 
-  const { data: insertedPayment, error: paymentError } = await admin
+  // 2) Fallback pelo pagador, só se external_reference for um UUID (evita erro
+  //    de cast no Postgres) e pegando a assinatura mais recente — um usuário
+  //    que cancelou e assinou de novo tem mais de uma linha, e maybeSingle()
+  //    daria erro nesse caso.
+  if (!subscription && payerUserId && UUID_RE.test(payerUserId)) {
+    const { data, error } = await admin
+      .from('subscriptions')
+      .select('id, user_id')
+      .eq('user_id', payerUserId)
+      .order('created_at', { ascending: false })
+      .limit(1);
+    if (error) console.error('Webhook: erro ao buscar assinatura por pagador:', error.message);
+    subscription = data?.[0] || null;
+  }
+
+  const mpPaymentId = String(payment.id);
+  const paidAt = payment.date_approved || null;
+  let claimed = false; // true só para quem "ganhou" a transição para aprovado
+
+  const { data: inserted, error: insertError } = await admin
     .from('payments')
     .insert({
       user_id: subscription?.user_id || null,
       subscription_id: subscription?.id || null,
-      mp_payment_id: String(payment.id),
+      mp_payment_id: mpPaymentId,
       mp_external_reference: payment.external_reference,
       amount: payment.transaction_amount,
       currency: payment.currency_id || 'BRL',
-      status: payment.status, // approved | pending | in_process | rejected | refunded | cancelled
+      status: payment.status, // approved | pending | in_process | rejected | refunded | cancelled | charged_back
       payment_method: payment.payment_method_id,
-      paid_at: payment.date_approved || null,
+      paid_at: paidAt,
     })
-    .select()
+    .select('id')
     .single();
 
-  if (paymentError) throw new Error('Erro ao registrar pagamento: ' + paymentError.message);
+  let paymentRowId = inserted?.id;
 
-  if (payment.status === 'approved') {
-    const split = calculateRevenueSplit(payment.transaction_amount);
-    const rows = REVENUE_SPLIT_TABLE.map((r) => ({
-      payment_id: insertedPayment.id,
+  if (!insertError) {
+    // Primeira notificação deste pagamento.
+    claimed = payment.status === 'approved';
+  } else {
+    // mp_payment_id é único: se o insert falhou, o pagamento já existia (webhook
+    // anterior, reenvio do Mercado Pago ou outra instância rodando junto).
+    // Em vez de ignorar, sincronizamos o status — um pagamento que entrou como
+    // "pending"/"in_process" e depois virou "approved" (ou "refunded") precisa
+    // refletir isso, e o "approved" precisa gerar a divisão de receita.
+    const { data: existing } = await admin
+      .from('payments')
+      .select('id, status, user_id, subscription_id')
+      .eq('mp_payment_id', mpPaymentId)
+      .maybeSingle();
+    if (!existing) throw new Error('Erro ao registrar pagamento: ' + insertError.message);
+    paymentRowId = existing.id;
+
+    // Duplicata exata (mesmo status): nada a fazer.
+    if (existing.status === payment.status) return;
+
+    const patch = { status: payment.status };
+    if (payment.status === 'approved') patch.paid_at = paidAt;
+    // Se o pagamento chegou antes de a assinatura estar gravada, completa o vínculo agora.
+    if (!existing.subscription_id && subscription?.id) patch.subscription_id = subscription.id;
+    if (!existing.user_id && subscription?.user_id) patch.user_id = subscription.user_id;
+
+    // O .neq('status', payment.status) faz a troca ser atômica: se duas
+    // notificações chegarem juntas, só uma consegue mudar a linha — e só ela
+    // (claimed) cria as alocações, evitando divisão de receita em dobro.
+    const { data: changed, error: updateError } = await admin
+      .from('payments')
+      .update(patch)
+      .eq('id', existing.id)
+      .neq('status', payment.status)
+      .select('id');
+    if (updateError) throw new Error('Erro ao atualizar pagamento: ' + updateError.message);
+
+    claimed = payment.status === 'approved' && !!(changed && changed.length > 0);
+  }
+
+  if (!claimed) return;
+
+  // --- Pagamento aprovado agora: registra a divisão de receita ---
+  // Salvaguarda extra contra duplicidade: se por qualquer motivo já houver
+  // alocações para este pagamento, não cria de novo.
+  const { count: existingAllocations } = await admin
+    .from('revenue_allocations')
+    .select('id', { count: 'exact', head: true })
+    .eq('payment_id', paymentRowId);
+  if (existingAllocations && existingAllocations > 0) return;
+
+  const split = calculateRevenueSplit(payment.transaction_amount);
+  const { error: allocError } = await admin.from('revenue_allocations').insert(
+    REVENUE_SPLIT_TABLE.map((r) => ({
+      payment_id: paymentRowId,
       recipient_name: r.recipient_name,
       percentage: r.percentage,
       amount: r.recipient_name === 'Tiago Pavinatto' ? split.tiago : r.recipient_name === 'Eliel Duarte' ? split.eliel : split.paulo,
-    }));
-    await admin.from('revenue_allocations').insert(rows);
-  }
+    }))
+  );
+  if (allocError) throw new Error('Erro ao registrar divisão de receita: ' + allocError.message);
 }
 
 async function handleSubscriptionEvent(admin, preapprovalId) {
