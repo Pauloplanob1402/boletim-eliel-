@@ -520,3 +520,68 @@ article.wrap::before,
 .cert-result.ok{ background: #eaf7ea; }
 .cert-result.no{ background:#ffe3df; }
 .cert-result .nome{ font-family: var(--display); font-size: clamp(1.6rem,5vw,2.4rem); margin: var(--s2) 0; text-transform:uppercase; }
+
+
+/* ============================================================================
+   REFINAMENTO VISUAL (hierarquia, seleção de planos, acessibilidade)
+   Bloco ADICIONAL: só CSS, nenhum JS/HTML/lógica alterado. Para reverter,
+   basta apagar daqui até o fim do arquivo.
+   Ideia: o efeito pop-art forte (contorno + sombra dura) fica reservado para
+   o que pede ação (botões, plano em destaque, card "Assinando"); o resto fica
+   mais quieto para a hierarquia aparecer.
+   ============================================================================ */
+
+/* separadores entre seções: tracejado fino em vez de 2px preto em todas */
+section + section{ border-top: 1px dashed rgba(17,17,17,.4); }
+
+/* cards informativos (depoimentos, "Sem assinar"): planos, sem sombra dura.
+   Só o card "Assinando" (.good) mantém o destaque amarelo + sombra. */
+.stake-card{ box-shadow: none; }
+.stake-card.good{ box-shadow: var(--shadow); }
+.guide .badge{ border-width: 2px; box-shadow: 3px 3px 0 #111; }
+
+/* contraste: branco sobre o vermelho vivo dava 4,35:1 (abaixo de 4,5:1 do AA
+   para texto pequeno). Com o vermelho escuro fica 5,8:1. */
+nav.primary a.btn-nav{ background: var(--red-dark); }
+nav.primary a.btn-nav:hover{ background: #a81c18; }
+.plan-card .ribbon{ background: var(--red-dark); }
+
+/* botões: estados que faltavam */
+.btn:active, nav.primary a.btn-nav:active{ transform: translate(4px,4px); box-shadow: none; }
+.btn:disabled, .btn[disabled]{ opacity:.5; cursor:not-allowed; transform:none; box-shadow:none; }
+
+/* cards de plano / forma de pagamento (são <label> com rádio escondido).
+   Estado normal = sombra curta; hover = levanta um pouco; selecionado = sombra
+   cheia + anel vermelho. Antes o plano Anual não mostrava que estava selecionado. */
+.plan-card{ position:relative; box-shadow: 2px 2px 0 #111; transition: transform .08s, box-shadow .08s; }
+.plan-card:hover{ transform: translate(-1px,-1px); box-shadow: 4px 4px 0 #111; }
+.plan-card:has(input:checked){ box-shadow: 5px 5px 0 #111; outline: 3px solid var(--red); outline-offset: 3px; }
+.plan-card.featured .price{ font-size: 2.6rem; }
+
+/* acessibilidade: o rádio estava com display:none (inline), então quem usa
+   teclado não conseguia escolher o plano. Aqui ele fica focável, mas invisível. */
+.plan-card input[type="radio"]{
+  display:block !important; position:absolute; opacity:0; width:1px; height:1px;
+  margin:0; pointer-events:none;
+}
+.plan-card:has(input:focus-visible){ outline: 3px solid var(--blue); outline-offset: 3px; }
+
+/* foco visível para teclado em links e botões */
+a:focus-visible, button:focus-visible, select:focus-visible, summary:focus-visible, .btn:focus-visible{
+  outline: 3px solid var(--blue); outline-offset: 3px;
+}
+
+/* celular: cabeçalho fixo ocupava muita tela com os 5 links quebrando linha */
+@media (max-width:700px){
+  .nav-inner{ padding: 12px 20px; gap: 10px; }
+  nav.primary{ gap: 6px 16px; }
+  nav.primary a{ padding-top: 6px; padding-bottom: 6px; }
+  .brand{ font-size: 1.2rem; }
+}
+
+/* respeitar quem pede menos movimento no sistema */
+@media (prefers-reduced-motion: reduce){
+  html{ scroll-behavior: auto; }
+  *, *::before, *::after{ transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+  .btn:hover, .btn:active, nav.primary a.btn-nav:hover, nav.primary a.btn-nav:active, .plan-card:hover{ transform: none; }
+}
