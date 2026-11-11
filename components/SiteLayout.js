@@ -85,6 +85,15 @@ export default function SiteLayout({
 
       <main>{children}</main>
 
+      {['inicio', 'edicao', 'lancamento'].includes(active) && (
+        <div className="sticky-cta" role="complementary" aria-label="Assinar o Sem Mimimi">
+          <span>Direto no e-mail, de segunda a sexta</span>
+          <Link href="/assinar" className="btn">
+            Quero assinar
+          </Link>
+        </div>
+      )}
+
       <footer>
         <div className="wrap">
           <div className="brand">
@@ -98,8 +107,13 @@ export default function SiteLayout({
             <Link href="/assinar">Assinar</Link>
           </nav>
         </div>
-        <div className="wrap fine" style={{ marginTop: 16 }}>
-          © 2026 Sem Mimimi. Tiago Pavinatto.
+        <div className="wrap legal-row" style={{ marginTop: 16 }}>
+          <Link href="/termos-de-uso">Termos de uso</Link>
+          <Link href="/politica-de-privacidade">Privacidade</Link>
+          <Link href="/politica-de-cancelamento">Cancelamento</Link>
+        </div>
+        <div className="wrap fine" style={{ marginTop: 12 }}>
+          © 2026 Sem Mimimi. Tiago Pavinatto. · Pagamento seguro via Mercado Pago · Cancele quando quiser.
         </div>
       </footer>
     </>
